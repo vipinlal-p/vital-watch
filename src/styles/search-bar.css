@@ -1,0 +1,252 @@
+.map-search-wrapper {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 1500;
+  width: 370px;
+}
+
+/* Search bar box */
+.map-search-bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 44px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  padding: 0 12px;
+  position: relative;
+}
+
+.map-search-icon {
+  font-size: 18px;
+  color: #666;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.map-search-input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #333;
+  background: transparent;
+}
+
+.map-search-input::placeholder {
+  color: #888;
+}
+
+/* Clear button */
+.map-search-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #777;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Suggestions dropdown */
+.map-search-suggestions {
+  margin-top: 6px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  list-style: none;
+  padding: 6px 0;
+  font-size: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+  animation: fadeIn 0.15s ease-in-out;
+}
+
+.map-search-suggestions li {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-search-suggestions li:hover {
+  background: #e8f0fe; /* Google Maps light blue */
+}
+
+.map-suggestion-title {
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 2px;
+}
+
+.map-suggestion-sub {
+  font-size: 12px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Smooth fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-search-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  color: #666;
+}
+
+.map-search-icon-btn:hover {
+  color: #111;
+}
+
+/* Directions button (Google Maps style) */
+.map-directions-btn {
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  margin-left: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368; /* Google gray */
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: background 0.2s, color 0.2s;
+}
+
+.map-directions-btn:hover {
+  background: #e8f0fe; /* Google light blue hover */
+  color: #1a73e8; /* Google blue */
+}
+
+.map-clear-route-btn {
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  margin-left: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  font-size: 16px;
+  font-weight: bold;
+  transition: background 0.2s, color 0.2s;
+}
+
+.map-clear-route-btn:hover {
+  background: #f8d7da; /* light red hover */
+  color: #d93025; /* Google Maps red */
+}
+
+.directions-panel {
+  margin-top: 10px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  max-height: 260px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-family: system-ui, sans-serif;
+}
+
+.directions-panel h4 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
+}
+
+.directions-panel ol {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f3f3;
+  font-size: 14px;
+  color: #333;
+}
+
+.step-item:last-child {
+  border-bottom: none;
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-distance {
+  font-size: 12px;
+  color: #666;
+}
+
+.step-icon {
+  color: #1a73e8; /* Blue */
+  flex-shrink: 0;
+}
+
+.step-icon.start {
+  color: #34a853; /* Green */
+}
+
+.step-icon.finish {
+  color: #ea4335; /* Red */
+}
+.instruction-text {
+  font-weight: 500;
+  color: #222;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.step-distance {
+  font-size: 12px;
+  color: #666;
+}
+
+.map-search-suggestions {
+  pointer-events: auto;
+  z-index: 3000;
+}
+.directions-panel {
+  max-height: 320px;
+  overflow: auto;
+}
+.map-directions-btn.active {
+  background: #e81a1a; /* red when route active */
+  color: #fff;
+  transition: background 0.2s ease;
+}

@@ -1,0 +1,232 @@
+/* src/styles/map-controls.css */
+
+/* --- Custom layer control (replaces Leaflet's default) --- */
+.custom-layer-control {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  /* keep button pinned to right */
+  pointer-events: auto;
+  /* ✅ block map click-through */
+}
+
+/* Rounded square toggle button */
+.custom-toggle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  pointer-events: auto;
+  /* ✅ prevent passing through */
+}
+
+.custom-toggle-btn:hover {
+  background: #f5f5f5;
+  transform: scale(1.05);
+  color: #000;
+}
+
+/* Active (Google Maps style) */
+.custom-toggle-btn.active {
+  background: #fff;
+  /* Google Maps blue */
+  color: #4285f4;
+  /* make icon/text white */
+  border: none;
+  box-shadow: 0 2px 6px rgba(66, 133, 244, 0.5);
+}
+
+/* Dropdown panel (positioned left of button) */
+.custom-dropdown {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  margin-right: 8px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  padding: 12px;
+  min-width: 160px;
+  pointer-events: auto;
+  /* ✅ clickable */
+}
+
+/* Dropdown options */
+.custom-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.custom-option:hover {
+  background: #f7f7f7;
+}
+
+.custom-option input[type="radio"],
+.custom-option input[type="checkbox"] {
+  transform: scale(1.3);
+  cursor: pointer;
+}
+
+/* --- Custom Zoom Control --- */
+.custom-zoom-group {
+  position: absolute;
+  top: 60px;
+  /* below the layer toggle */
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  pointer-events: auto;
+  /* ✅ ensure zoom control captures clicks */
+}
+
+.custom-zoom-btn {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #666;
+  transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  pointer-events: auto;
+  /* ✅ block click-through */
+}
+
+.custom-zoom-btn:hover {
+  background: #f5f5f5;
+  transform: scale(1.05);
+  color: #000;
+}
+
+.custom-zoom-btn + .custom-zoom-btn {
+  border-top: 1px solid #ddd;
+}
+
+/* --- Google Maps-like dynamic scale --- */
+.leaflet-control-scale {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  margin: 0 0 24px 16px;
+}
+
+.leaflet-control-scale-line {
+  background: none !important;
+  border: none !important;
+  border-top: 3px solid #000 !important;
+  height: 0 !important;
+  line-height: 1.2;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  font-weight: 500;
+  color: #000 !important;
+  text-align: center;
+  padding-top: 2px;
+  min-width: 80px;
+}
+
+/* --- Move scale bar up like Google Maps --- */
+.leaflet-bottom.leaflet-left .leaflet-control-scale {
+  bottom: 24px !important;
+  left: 16px !important;
+}
+
+/* tooltip for distances */
+.distance-tooltip {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  color: #111;
+}
+
+/* Horizontal measurement toolbar */
+.measure-toolbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  padding: 6px 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 1200;
+  pointer-events: auto;
+  /* ✅ clickable toolbar */
+}
+
+.measure-toolbar button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.measure-toolbar button:hover {
+  background: #f0f0f0;
+}
+
+.measure-toolbar button.active {
+  background: #e6f3ff;
+  color: #0b76ff;
+  font-weight: 600;
+}
+
+/* edge labels */
+.edge-tooltip {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* --- Locate Button --- */
+.locate-btn {
+  color: #444;
+  pointer-events: auto;
+  /* ✅ prevent passing click to map */
+}
+
+.locate-btn.active {
+  color: #4285f4;
+  /* Google blue */
+}

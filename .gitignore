@@ -1,0 +1,47 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+.pnpm/
+
+# Build outputs
+dist/
+build/
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Editor/IDE stuff
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Database files (keep schema, ignore local DB dumps)
+*.sqlite
+*.db
+# keep user_db.sql tracked!
+!user_db.sql
+
+# Cache
+.cache/
+.tmp/
+vite-cache/
+coverage/
+
+# Misc
+*.tgz

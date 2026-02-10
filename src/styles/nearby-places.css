@@ -1,0 +1,247 @@
+.poi-wrapper {
+  position: absolute;
+  top: 16px; /* just below search bar */
+  left: 390px;
+  z-index: 1600;
+}
+
+.map-poi-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  border: none;
+}
+
+.map-poi-btn:hover {
+  background: #f5f5f5;
+}
+
+.poi-menu {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 2000;
+}
+
+.poi-menu button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.poi-menu button:hover {
+  background: #f2f2f2;
+}
+
+/* Popup for choosing location */
+.poi-choice {
+  position: absolute;
+  top: 100px;
+  left: 12px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 2001;
+  width: 200px;
+}
+
+.poi-choice p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.poi-choice-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poi-choice-buttons button {
+  padding: 6px 10px;
+  border: none;
+  background: #1a73e8;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.poi-choice-buttons button:hover {
+  background: #1558b0;
+}
+
+.poi-choice-cancel {
+  margin-top: 8px;
+  padding: 4px 8px;
+  border: none;
+  background: #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.poi-choice-cancel:hover {
+  background: #c8c8c8;
+}
+
+.poi-panel {
+  position: absolute;
+  top: 60px; /* just below the button */
+  left: 340px; /* aligned with poi-wrapper */
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  width: 320px;
+  max-height: 350px;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1600;
+}
+
+.poi-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.poi-clear-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.poi-clear-btn:hover {
+  color: #e53935;
+}
+
+.map-poi-btn.active {
+  background: #e81a1a;
+  color: #fff;
+}
+
+.custom-poi-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  color: white;
+  text-align: center;
+}
+
+.hospital-icon {
+  background: red;
+}
+
+.police-icon {
+  background: navy;
+  font-size: 16px;
+}
+
+.pharmacy-icon {
+  background: green;
+  font-size: 16px;
+}
+/* Dropdown container */
+.dropdown-container {
+  position: relative;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* Dropdown button (make it look like a real button) */
+.dropdown-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.dropdown-btn:hover {
+  background: #f3f4f6; /* subtle gray hover */
+  border-color: #999;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownFade 0.15s ease;
+}
+
+/* Dropdown items */
+.dropdown-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: #f0f0f0;
+}
+
+.dropdown-item.active {
+  font-weight: 600;
+  background: #e6f0ff;
+  color: #2563eb;
+}
+
+/* Small animation for smooth dropdown */
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

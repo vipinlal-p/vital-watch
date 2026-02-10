@@ -1,0 +1,16 @@
+/* Custom styles to complement Tailwind */
+body {
+  background-color: #f0f4f8;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}

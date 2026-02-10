@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+@layer utilities {
+  .bg-gradient-red-black {
+    background: linear-gradient(90deg, #7F1D1D, #000000);
+  }
+}
