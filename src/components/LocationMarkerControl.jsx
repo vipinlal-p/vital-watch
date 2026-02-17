@@ -169,7 +169,7 @@ export default function LocationMarkerControl() {
           viewBox="0 0 24 24"
           width="20"
           height="20"
-          fill={enabled ? "#EA4335" : "currentColor"}
+          fill={enabled ? "#1a73e8" : "currentColor"}
         >
           <path
             d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5
