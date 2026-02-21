@@ -462,7 +462,7 @@ export default function MeasureControl() {
     return (
         <>
             {/* Toggle button */}
-            <div className="custom-layer-control" style={{ top: "290px" }} ref={toggleRef}>
+            <div className="custom-layer-control" style={{ top: "240px" }} ref={toggleRef}>
                 <button
                     className={`custom-toggle-btn ${enabled ? "active" : ""}`}
                     title="Measurement Tools"

@@ -5,7 +5,7 @@ import { Expand } from "lucide-react"; // ✅ import icon
 import L from "leaflet";
 
 function ZoomControlButton({
-  defaultCenter = [10.012, 76.5573],
+  defaultCenter = [8.5241, 76.9366],
   defaultZoom = 10,
 }) {
   const map = useMap();

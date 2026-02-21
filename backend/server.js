@@ -10,7 +10,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const SECRET_KEY = "your-secret-key"; // ⚠️ Move to .env in production
+const SECRET_KEY = process.env.JWT_SECRET || "dev-secret-key";
+const PORT = Number(process.env.PORT || 5000);
 
 // ✅ Helper: Password strength validation
 function isStrongPassword(password) {
@@ -171,6 +172,6 @@ app.post("/api/crime-records", authenticateToken, async (req, res) => {
 });
 
 // ✅ Start server
-app.listen(5000, () =>
-  console.log("✅ Server running on http://localhost:5000")
+app.listen(PORT, () =>
+  console.log(`✅ Server running on http://localhost:${PORT}`)
 );

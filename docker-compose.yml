@@ -1,0 +1,71 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: vector-map-db
+    environment:
+      POSTGRES_DB: crime_map_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: vector-map-backend
+    environment:
+      PORT: 5000
+      JWT_SECRET: your-secret-key
+      PGHOST: db
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: crime_map_db
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  geoserver:
+    image: kartoza/geoserver:latest
+    container_name: vector-map-geoserver
+    environment:
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: geoserver
+    ports:
+      - "8080:8080"
+    volumes:
+      - geoserver_data:/opt/geoserver/data_dir
+      - ./infrastructure/geoserver/rasters:/opt/geoserver/rasters:ro
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: vector-map-frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:5000
+      VITE_GEOSERVER_BASE_URL: http://localhost:8080
+      VITE_GEOSERVER_WMS_URL: http://localhost:8080/geoserver/wms
+      VITE_GEOSERVER_OWS_URL: http://localhost:8080/geoserver/crime_map_app/ows
+      VITE_GEOSERVER_WORKSPACE: raster
+      VITE_GEOSERVER_DEM_LAYER: raster:dem
+      VITE_GEOSERVER_ASPECT_LAYER: raster:aspect
+      VITE_GEOSERVER_POPULATION_LAYER: raster:population_density
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+      - geoserver
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  geoserver_data:

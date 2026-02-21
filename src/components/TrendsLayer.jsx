@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import Chart from "chart.js/auto";
+import { GEOSERVER_OWS_URL, apiUrl } from "/src/config/endpoints";
 import "../styles/map-controls.css";
 
 function TrendsLayer() {
@@ -38,7 +39,7 @@ function TrendsLayer() {
       return;
     }
 
-    fetch("http://localhost:5000/api/profile", {
+    fetch(apiUrl("/api/profile"), {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -58,7 +59,7 @@ function TrendsLayer() {
     setLoading(true);
 
     const url =
-      "http://localhost:8080/geoserver/crime_map_app/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json";
+      `${GEOSERVER_OWS_URL}?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json`;
 
     fetch(url)
       .then((res) => res.json())
@@ -258,7 +259,7 @@ function TrendsLayer() {
       {/* 📈 Button */}
       <div
         className="custom-layer-control"
-        style={{ top: "490px" }}
+        style={{ top: "440px" }}
         ref={controlRef}
       >
         <button

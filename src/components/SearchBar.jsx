@@ -25,15 +25,41 @@ export default function SearchBar({
   const debouncedQuery = useDebounce(query, 300);
   const [suggestions, setSuggestions] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [suggestionError, setSuggestionError] = useState("");
   const [userLocation, setUserLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [hasRoute, setHasRoute] = useState(false);
   const [steps, setSteps] = useState([]);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [activeStepIndex, setActiveStepIndex] = useState(0);
+  const [navHeading, setNavHeading] = useState(0);
+  const [nextStepDistance, setNextStepDistance] = useState(null);
 
   const map = useMap();
   const markerRef = useRef(null);
   const routingRef = useRef(null);
   const controlRef = useRef(null); // wrapper ref
+  const directionsAbortRef = useRef(null);
+  const directionsRequestIdRef = useRef(0);
+  const navWatchIdRef = useRef(null);
+  const activeStepIndexRef = useRef(0);
+  const currentNavMarkerRef = useRef(null);
+  const alertCooldownRef = useRef({});
+  const lastNavLocRef = useRef(null);
+
+  useEffect(() => {
+    activeStepIndexRef.current = activeStepIndex;
+  }, [activeStepIndex]);
+
+  const alertWithCooldown = (key, message, cooldownMs = 10000) => {
+    const now = Date.now();
+    const last = alertCooldownRef.current[key] || 0;
+    if (now - last >= cooldownMs) {
+      alertCooldownRef.current[key] = now;
+      alert(message);
+    }
+  };
 
   // ✅ Custom red marker icon
   const redIcon = new L.Icon({
@@ -44,6 +70,13 @@ export default function SearchBar({
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41],
+  });
+
+  const currentNavArrowIcon = L.divIcon({
+    className: "current-nav-arrow-marker",
+    html: '<div class="current-nav-arrow-shape"></div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 
   // -----------------------------
@@ -89,26 +122,41 @@ export default function SearchBar({
   // Fetch suggestions (Nominatim) for the debounced input
   // -----------------------------
   useEffect(() => {
-    if (!debouncedQuery.trim()) {
+    const trimmed = debouncedQuery.trim();
+    if (trimmed.length < 2) {
       setSuggestions([]);
+      setSuggestionError("");
+      setIsLoadingSuggestions(false);
       return;
     }
+    const controller = new AbortController();
     let cancelled = false;
     const fetchSuggestions = async () => {
+      setIsLoadingSuggestions(true);
+      setSuggestionError("");
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          debouncedQuery
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(
+          trimmed
         )}&addressdetails=1&limit=5`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Suggestion HTTP ${res.status}`);
         const data = await res.json();
-        if (!cancelled) setSuggestions(data || []);
+        if (!cancelled) setSuggestions(Array.isArray(data) ? data : []);
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error("Suggestion error:", err);
+        if (!cancelled) {
+          setSuggestions([]);
+          setSuggestionError("Could not load suggestions.");
+        }
+      } finally {
+        if (!cancelled) setIsLoadingSuggestions(false);
       }
     };
     fetchSuggestions();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [debouncedQuery]);
 
@@ -144,10 +192,10 @@ export default function SearchBar({
   // handleSearch now accepts an optional override text.
   // If overrideText is provided we query Nominatim immediately with it.
   // If no overrideText and suggestions exist we pick suggestions[0].
-  // Otherwise we use debouncedQuery.
+  // Otherwise we use the current query text.
   // -----------------------------
   const handleSearch = async (overrideText) => {
-    const useText = overrideText ?? debouncedQuery ?? "";
+    const useText = overrideText ?? query ?? "";
     if (!useText.trim()) return;
 
     // If suggestions exist and there's NO overrideText -> choose the first suggestion (fast)
@@ -176,7 +224,7 @@ export default function SearchBar({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    handleSearch(); // uses debouncedQuery / suggestions behaviour
+    handleSearch(); // uses current query / suggestions behaviour
   };
 
   // -----------------------------
@@ -214,6 +262,11 @@ export default function SearchBar({
   // Clear routing and marker helpers
   // -----------------------------
   const clearRouting = () => {
+    stopNavigation();
+    if (directionsAbortRef.current) {
+      directionsAbortRef.current.abort();
+      directionsAbortRef.current = null;
+    }
     if (routingRef.current) {
       if (routingRef.current.type === "geojson") {
         try {
@@ -224,12 +277,14 @@ export default function SearchBar({
     }
     setHasRoute(false);
     setSteps([]);
+    setActiveStepIndex(0);
   };
 
   const handleClear = () => {
     setQuery("");
     setSuggestions([]);
     setDestination(null);
+    if (onDestinationChange) onDestinationChange(null);
     if (markerRef.current) {
       try {
         map.removeLayer(markerRef.current);
@@ -337,6 +392,131 @@ export default function SearchBar({
     return <ArrowRight className="step-icon" size={18} />;
   };
 
+  const stopNavigation = () => {
+    if (navWatchIdRef.current !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(navWatchIdRef.current);
+      navWatchIdRef.current = null;
+    }
+    if (currentNavMarkerRef.current) {
+      try {
+        map.removeLayer(currentNavMarkerRef.current);
+      } catch {}
+      currentNavMarkerRef.current = null;
+    }
+    lastNavLocRef.current = null;
+    setIsNavigating(false);
+    setNavHeading(0);
+    setNextStepDistance(null);
+  };
+
+  const distanceMeters = (a, b) => {
+    if (!a || !b) return Number.POSITIVE_INFINITY;
+    return L.latLng(a[0], a[1]).distanceTo(L.latLng(b[0], b[1]));
+  };
+
+  const bearingDegrees = (from, to) => {
+    if (!from || !to) return 0;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const toDeg = (r) => (r * 180) / Math.PI;
+    const [lat1, lon1] = from;
+    const [lat2, lon2] = to;
+    const phi1 = toRad(lat1);
+    const phi2 = toRad(lat2);
+    const dlambda = toRad(lon2 - lon1);
+    const y = Math.sin(dlambda) * Math.cos(phi2);
+    const x =
+      Math.cos(phi1) * Math.sin(phi2) -
+      Math.sin(phi1) * Math.cos(phi2) * Math.cos(dlambda);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  };
+
+  const focusStep = (index) => {
+    const step = steps[index];
+    if (!step) return;
+    setActiveStepIndex(index);
+    if (step.location) {
+      map.flyTo(step.location, Math.max(map.getZoom(), 16), { duration: 0.5 });
+    }
+  };
+
+  const updateActiveStepByLocation = (loc, forceFromStart = false) => {
+    if (!steps.length) return;
+    const startIndex = forceFromStart ? 0 : activeStepIndexRef.current;
+    let bestIndex = -1;
+    let bestDistance = Number.POSITIVE_INFINITY;
+
+    for (let i = startIndex; i < steps.length; i += 1) {
+      if (!steps[i].location) continue;
+      const d = distanceMeters(loc, steps[i].location);
+      if (d < bestDistance) {
+        bestDistance = d;
+        bestIndex = i;
+      }
+    }
+
+    if (bestIndex >= 0 && bestDistance < 120) {
+      setActiveStepIndex(bestIndex);
+      setNextStepDistance(bestDistance);
+      return;
+    }
+    setNextStepDistance(null);
+  };
+
+  const startNavigation = () => {
+    if (!hasRoute || steps.length === 0) {
+      alert("Get directions first.");
+      return;
+    }
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    stopNavigation();
+    setIsNavigating(true);
+
+    const onPosition = (pos) => {
+      const loc = [pos.coords.latitude, pos.coords.longitude];
+      setUserLocation(loc);
+      if (onLocationChange) onLocationChange(loc);
+      if (!currentNavMarkerRef.current) {
+        currentNavMarkerRef.current = L.marker(loc, {
+          icon: currentNavArrowIcon,
+          interactive: false,
+        }).addTo(map);
+      } else {
+        currentNavMarkerRef.current.setLatLng(loc);
+      }
+
+      const rawHeading = pos.coords.heading;
+      const computedHeading =
+        Number.isFinite(rawHeading) && rawHeading >= 0
+          ? rawHeading
+          : lastNavLocRef.current
+            ? bearingDegrees(lastNavLocRef.current, loc)
+            : navHeading;
+      setNavHeading(computedHeading);
+      const markerEl = currentNavMarkerRef.current.getElement?.();
+      if (markerEl) {
+        markerEl.style.setProperty("--nav-heading", `${computedHeading}deg`);
+      }
+      lastNavLocRef.current = loc;
+
+      updateActiveStepByLocation(loc);
+      map.setView(loc, Math.max(map.getZoom(), 16));
+    };
+
+    navWatchIdRef.current = navigator.geolocation.watchPosition(
+      onPosition,
+      (err) => {
+        console.error("Navigation tracking error:", err);
+        alertWithCooldown("navigation-tracking-failed", "Navigation tracking failed.");
+        stopNavigation();
+      },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+    );
+  };
+
   // -----------------------------
   // Routing (OSRM)
   // -----------------------------
@@ -357,24 +537,37 @@ export default function SearchBar({
           );
         });
         setUserLocation(start);
+        if (onLocationChange) onLocationChange(start);
       } catch (err) {
-        console.error("Could not acquire geolocation:", err);
-        alert("Unable to get your current location.");
-        return;
+        // fallback to map center to prevent repeated location error loops
+        console.warn("Could not acquire geolocation; using map center.", err);
+        const center = map.getCenter();
+        start = [center.lat, center.lng];
+        setUserLocation(start);
+        if (onLocationChange) onLocationChange(start);
+        alertWithCooldown(
+          "directions-location-fallback",
+          "Using current map center as start location."
+        );
       }
     }
 
     clearRouting();
 
     try {
+      const requestId = ++directionsRequestIdRef.current;
+      const controller = new AbortController();
+      directionsAbortRef.current = controller;
+
       const startLonLat = `${start[1]},${start[0]}`;
       const destLonLat = `${destination[1]},${destination[0]}`;
       const url = `https://router.project-osrm.org/route/v1/driving/${startLonLat};${destLonLat}?overview=full&geometries=geojson&steps=true`;
 
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`OSRM HTTP ${res.status}`);
       const json = await res.json();
       if (!json.routes?.length) throw new Error("No routes returned");
+      if (requestId !== directionsRequestIdRef.current) return;
 
       const geom = json.routes[0].geometry;
       const layer = L.geoJSON(geom, {
@@ -399,15 +592,26 @@ export default function SearchBar({
             type: s.maneuver.type || "straight",
             modifier: s.maneuver.modifier || "straight",
             distance: s.distance || 0,
+            location: Array.isArray(s?.maneuver?.location)
+              ? [s.maneuver.location[1], s.maneuver.location[0]]
+              : null,
           });
         })
       );
       setSteps(allSteps);
-
-      map.fitBounds(layer.getBounds(), { padding: [40, 40] });
+      setActiveStepIndex(0);
+      setNextStepDistance(null);
+      if (userLocation) {
+        updateActiveStepByLocation(userLocation, true);
+      }
     } catch (err) {
+      if (err?.name === "AbortError") return;
       console.error("OSRM routing failed:", err);
       alert("Routing failed. Check console.");
+    } finally {
+      if (!directionsAbortRef.current?.signal?.aborted) {
+        directionsAbortRef.current = null;
+      }
     }
   };
 
@@ -431,6 +635,7 @@ export default function SearchBar({
   // -----------------------------
   return (
     <div className="map-search-wrapper" ref={controlRef}>
+      <div className="map-search-row">
       <form className="map-search-bar" onSubmit={handleSubmit}>
         {/* Search button */}
         <button
@@ -447,7 +652,10 @@ export default function SearchBar({
           placeholder={placeholder}
           className="map-search-input"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsFocused(true);
+          }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
         />
@@ -472,6 +680,7 @@ export default function SearchBar({
             <X size={16} />
           </button>
         )}
+      </form>
 
         {/* Directions button */}
         <button
@@ -561,15 +770,52 @@ export default function SearchBar({
 </svg>
 )}
         </button>
-      </form>
+      </div>
 
       {/* Directions Panel */}
       {hasRoute && steps.length > 0 && (
         <div className="directions-panel">
+          {isNavigating && steps[activeStepIndex] && (
+            <div className="next-maneuver-banner">
+              <Navigation size={16} />
+              <span>{steps[activeStepIndex].text}</span>
+              {nextStepDistance !== null && (
+                <strong>{formatDistance(nextStepDistance)}</strong>
+              )}
+            </div>
+          )}
           <h4>Directions</h4>
+          <div className="directions-actions">
+            {!isNavigating ? (
+              <button
+                type="button"
+                className="nav-btn start"
+                onClick={startNavigation}
+              >
+                Start Navigation
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="nav-btn stop"
+                onClick={stopNavigation}
+              >
+                Stop Navigation
+              </button>
+            )}
+          </div>
           <ol>
             {steps.map((s, i) => (
-              <li key={i} className="step-item">
+              <li
+                key={i}
+                className={`step-item ${
+                  isNavigating && i === activeStepIndex ? "active" : ""
+                }`}
+                onClick={() => focusStep(i)}
+              >
+                {isNavigating && i === activeStepIndex && (
+                  <Navigation className="step-location-arrow current" size={15} />
+                )}
                 {getIconForStep(
                   s.type,
                   s.modifier,
@@ -591,8 +837,24 @@ export default function SearchBar({
       )}
 
       {/* Suggestions dropdown */}
-      {isFocused && suggestions.length > 0 && (
+      {isFocused &&
+        (suggestions.length > 0 ||
+          isLoadingSuggestions ||
+          !!suggestionError ||
+          debouncedQuery.trim().length >= 2) && (
         <ul className="map-search-suggestions">
+          {isLoadingSuggestions && (
+            <li className="map-suggestion-state">Searching places...</li>
+          )}
+          {!isLoadingSuggestions && suggestionError && (
+            <li className="map-suggestion-state error">{suggestionError}</li>
+          )}
+          {!isLoadingSuggestions &&
+            !suggestionError &&
+            suggestions.length === 0 &&
+            debouncedQuery.trim().length >= 2 && (
+              <li className="map-suggestion-state">No places found</li>
+            )}
           {suggestions.slice(0, 3).map((s, i) => {
             const [title, ...rest] = s.display_name.split(",");
             const subtitle = rest.join(", ").trim();

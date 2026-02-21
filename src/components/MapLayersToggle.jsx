@@ -29,25 +29,47 @@ export const baseLayers = {
   },
 };
 
+const buildBaseLayer = (config) => {
+  if (config.type === "wms") {
+    return L.tileLayer.wms(config.url, {
+      layers: config.layers,
+      format: config.format || "image/png",
+      transparent: Boolean(config.transparent),
+      version: config.version || "1.1.1",
+      attribution: config.attribution,
+    });
+  }
+
+  return L.tileLayer(config.url, {
+    attribution: config.attribution,
+  });
+};
+
 function MapLayersToggle({ activeBase, setActiveBase }) {
   const [open, setOpen] = useState(false);
   const map = useMap();
   const controlRef = useRef(null);
+  const baseLayerRef = useRef(null);
 
   // ✅ Ensure base layer is always on map
   useEffect(() => {
     if (!map) return;
+    const selected = baseLayers[activeBase];
+    if (!selected) return;
 
-    // remove any existing TileLayer
-    map.eachLayer((layer) => {
-      if (layer instanceof L.TileLayer) {
-        map.removeLayer(layer);
+    if (baseLayerRef.current && map.hasLayer(baseLayerRef.current)) {
+      map.removeLayer(baseLayerRef.current);
+    }
+
+    const nextBase = buildBaseLayer(selected).addTo(map);
+    baseLayerRef.current = nextBase;
+
+    return () => {
+      if (baseLayerRef.current && map.hasLayer(baseLayerRef.current)) {
+        map.removeLayer(baseLayerRef.current);
       }
-    });
-
-    // add the currently selected base layer
-    const { url, attribution } = baseLayers[activeBase];
-    L.tileLayer(url, { attribution }).addTo(map);
+      baseLayerRef.current = null;
+    };
   }, [map, activeBase]);
 
   // ✅ Block clicks & scrolls from leaking through

@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
+import { GEOSERVER_OWS_URL, apiUrl } from "/src/config/endpoints";
 import "../styles/map-controls.css";
 
 function CrimeLayer() {
@@ -27,7 +28,7 @@ function CrimeLayer() {
         setIsLoggedIn(false);
         return;
       }
-      fetch("http://localhost:5000/api/profile", {
+      fetch(apiUrl("/api/profile"), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => (res.ok ? setIsLoggedIn(true) : setIsLoggedIn(false)))
@@ -49,7 +50,7 @@ function CrimeLayer() {
     if (!enabled) return;
 
     const url =
-      "http://localhost:8080/geoserver/crime_map_app/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json";
+      `${GEOSERVER_OWS_URL}?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json`;
 
     let isCancelled = false;
 
@@ -101,7 +102,7 @@ function CrimeLayer() {
               );
               if (btn) {
                 btn.addEventListener("click", () => {
-                  const detailUrl = `http://localhost:8080/geoserver/crime_map_app/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records&outputFormat=application/json&CQL_FILTER=station_id=${props.station_id}`;
+                  const detailUrl = `${GEOSERVER_OWS_URL}?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records&outputFormat=application/json&CQL_FILTER=station_id=${props.station_id}`;
 
                   fetch(detailUrl)
                     .then((res) => res.json())
@@ -144,7 +145,7 @@ function CrimeLayer() {
                 );
                 if (dlBtn) {
                   dlBtn.addEventListener("click", async () => {
-                    const detailUrl = `http://localhost:8080/geoserver/crime_map_app/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records&outputFormat=application/json&CQL_FILTER=station_id=${props.station_id}`;
+                    const detailUrl = `${GEOSERVER_OWS_URL}?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records&outputFormat=application/json&CQL_FILTER=station_id=${props.station_id}`;
 
                     const res = await fetch(detailUrl);
                     const details = await res.json();
@@ -214,7 +215,7 @@ function CrimeLayer() {
   return (
     <div
       className="custom-layer-control"
-      style={{ top: "390px" }}
+      style={{ top: "340px" }}
       ref={toggleRef}
     >
       <button

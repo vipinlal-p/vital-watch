@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.heat";
+import { GEOSERVER_OWS_URL } from "/src/config/endpoints";
 import "../styles/map-controls.css";
 import "../styles/heatmap-layer.css";
 
@@ -29,7 +30,7 @@ function HeatmapLayer() {
   // 🔹 Fetch distinct years + crime types from WFS
   useEffect(() => {
     const url =
-      "http://localhost:8080/geoserver/crime_map_app/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json&propertyName=year,crime_type";
+      `${GEOSERVER_OWS_URL}?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json&propertyName=year,crime_type`;
 
     fetch(url)
       .then((res) => res.json())
@@ -68,7 +69,7 @@ function HeatmapLayer() {
     if (!enabled) return;
 
     let url =
-      "http://localhost:8080/geoserver/crime_map_app/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json";
+      `${GEOSERVER_OWS_URL}?service=WFS&version=1.0.0&request=GetFeature&typeName=crime_map_app:crime_records_all&outputFormat=application/json`;
 
     const filters = [];
     if (year !== "All") filters.push(`year=${year}`);
@@ -152,7 +153,7 @@ function HeatmapLayer() {
   return (
     <div
       className="custom-layer-control"
-      style={{ top: "440px" }}
+      style={{ top: "390px" }}
       ref={controlRef}
     >
       {/* Toggle dropdown button */}

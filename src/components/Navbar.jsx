@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LoginDropdown from "/src/components/LoginDropdown";
 import Toast from "/src/components/Toast"; // ✅ import Toast
+import { apiUrl } from "/src/config/endpoints";
 
 function Navbar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -14,7 +15,7 @@ function Navbar() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      fetch("http://localhost:5000/api/profile", {
+      fetch(apiUrl("/api/profile"), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())

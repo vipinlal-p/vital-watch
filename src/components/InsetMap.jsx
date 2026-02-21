@@ -1,6 +1,6 @@
 // src/components/InsetMap.jsx
 import React, { useEffect } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, WMSTileLayer, useMap } from "react-leaflet";
 import ReactDOM from "react-dom";
 import L from "leaflet";
 import { baseLayers } from "/src/components/MapLayersToggle";
@@ -91,10 +91,21 @@ const InsetMap = React.memo(
           attributionControl={false}
         >
           {/* ✅ Use same base layer as main map */}
-          <TileLayer
-            url={baseLayers[activeBase].url}
-            attribution={baseLayers[activeBase].attribution}
-          />
+          {baseLayers[activeBase]?.type === "wms" ? (
+            <WMSTileLayer
+              url={baseLayers[activeBase].url}
+              layers={baseLayers[activeBase].layers}
+              format={baseLayers[activeBase].format}
+              transparent={baseLayers[activeBase].transparent}
+              version={baseLayers[activeBase].version}
+              attribution={baseLayers[activeBase].attribution}
+            />
+          ) : (
+            <TileLayer
+              url={baseLayers[activeBase].url}
+              attribution={baseLayers[activeBase].attribution}
+            />
+          )}
           {bounds && <RoundedRectangle bounds={bounds} />}
           <SyncView center={centerZoom.center} zoom={insetZoom} />
         </MapContainer>

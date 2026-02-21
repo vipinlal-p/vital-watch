@@ -2,10 +2,10 @@
 
 .add-crime-control {
   position: absolute;
-  top: 80px; /* adjust placement */
-  left: 12px; /* stick to left side */
-  z-index: 1200; /* above map layers */
-  width: 160px; /* control width */
+  top: 80px;
+  left: 12px;
+  z-index: 1200;
+  width: 270px;
   font-family: inherit;
 }
 
@@ -15,7 +15,7 @@
   border: 1px solid #ccc;
   padding: 10px 0;
   width: 100%;
-  border-radius: 24px; /* ✅ pill shape like SearchBar */
+  border-radius: 24px;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   font-size: 14px;
@@ -38,38 +38,260 @@
   font-size: 13px;
 }
 
-.add-crime-form form {
+.raster-panel {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.add-crime-form label {
-  display: flex;
-  flex-direction: column;
-  font-weight: 500;
+.raster-meta {
+  font-size: 11px;
+  color: #5b5b5b;
+}
+
+.raster-meta-url {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.raster-search,
+.raster-manual-add input {
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
   font-size: 12px;
 }
 
-.add-crime-form input,
-.add-crime-form select {
-  margin-top: 4px;
+.raster-list {
+  max-height: 190px;
+  overflow: auto;
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
   padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  background: #fafafa;
 }
 
-.add-crime-form button {
-  margin-top: 8px;
-  background: #1a73e8;
-  color: white;
+.raster-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #222;
+  padding: 6px 4px;
+}
+
+.raster-checkbox + .raster-checkbox {
+  border-top: 1px solid #ececec;
+}
+
+.raster-checkbox input {
+  margin-top: 2px;
+}
+
+.raster-label-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.raster-layer-title {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.raster-layer-name,
+.raster-layer-crs {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.raster-manual-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+}
+
+.raster-manual-add button {
   border: none;
-  border-radius: 6px;
-  padding: 8px;
+  border-radius: 8px;
+  background: #1a73e8;
+  color: #fff;
+  padding: 0 10px;
   cursor: pointer;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.add-crime-form button:hover {
+.raster-manual-add button:hover {
   background: #1669c1;
+}
+
+.raster-local-list {
+  max-height: 170px;
+  overflow: auto;
+  border: 1px solid #e1e1e1;
+  border-radius: 10px;
+  padding: 6px;
+  background: #f8fafc;
+}
+
+.raster-local-item {
+  padding: 6px 4px;
+}
+
+.raster-local-item + .raster-local-item {
+  border-top: 1px solid #ececec;
+}
+
+.raster-local-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.raster-local-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  word-break: break-word;
+}
+
+.raster-local-remove {
+  margin-left: 22px;
+  margin-top: 4px;
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0;
+}
+
+.raster-local-msg {
+  margin-top: 2px;
+  margin-left: 22px;
+  font-size: 11px;
+  color: #6b7280;
+  line-height: 1.25;
+}
+
+.raster-opacity-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.raster-opacity-label input[type="range"] {
+  width: 100%;
+}
+
+.raster-status {
+  font-size: 11px;
+  color: #4b5563;
+}
+
+.raster-status-error {
+  color: #b91c1c;
+}
+
+.layer-legend-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.layer-legend-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.layer-legend-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layer-legend-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layer-legend-name {
+  font-size: 11px;
+  color: #374151;
+  word-break: break-word;
+}
+
+.layer-legend-image {
+  width: 100%;
+  max-height: 64px;
+  object-fit: contain;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.layer-legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex: 0 0 14px;
+}
+
+.raster-georef-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.raster-georef-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.raster-georef-panel input {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.raster-georef-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.raster-georef-panel button {
+  border: none;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.raster-georef-panel button:hover {
+  background: #1e40af;
 }

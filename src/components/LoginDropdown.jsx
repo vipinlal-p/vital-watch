@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import RegisterModal from "./RegisterModal";
 import Toast from "./Toast";
+import { apiUrl } from "/src/config/endpoints";
 
 export default function LoginDropdown({ onLoginSuccess }) {
   const [open, setOpen] = useState(false);
@@ -31,7 +32,7 @@ export default function LoginDropdown({ onLoginSuccess }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

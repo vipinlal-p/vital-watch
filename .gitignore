@@ -38,10 +38,24 @@ Thumbs.db
 !user_db.sql
 
 # Cache
+.vite/
 .cache/
 .tmp/
 vite-cache/
 coverage/
+
+# Docker/local orchestration overrides
+docker-compose.override.yml
+*.env.docker
+
+# GeoServer local raster drops (mounted into container)
+# Keep placeholder folder tracked via .gitkeep.
+infrastructure/geoserver/rasters/*.tif
+infrastructure/geoserver/rasters/*.tiff
+infrastructure/geoserver/rasters/*.img
+infrastructure/geoserver/rasters/*.vrt
+infrastructure/geoserver/rasters/*.asc
+!infrastructure/geoserver/rasters/.gitkeep
 
 # Misc
 *.tgz

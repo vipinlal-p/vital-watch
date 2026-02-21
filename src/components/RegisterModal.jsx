@@ -1,6 +1,7 @@
 // src/components/RegisterModal.jsx
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiUrl } from "/src/config/endpoints";
 
 export default function RegisterModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ export default function RegisterModal({ isOpen, onClose }) {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
