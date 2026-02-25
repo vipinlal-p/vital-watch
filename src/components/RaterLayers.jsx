@@ -252,7 +252,9 @@ export default function RaterLayers({
       };
 
       if (!isEnabled && existingLayer) {
-        map.removeLayer(existingLayer.leafletLayer);
+        try {
+          map.removeLayer(existingLayer.leafletLayer);
+        } catch {}
         delete wmsLayersRef.current[layerName];
         return;
       }
@@ -289,16 +291,20 @@ export default function RaterLayers({
 
   useEffect(() => {
     Object.values(wmsLayersRef.current).forEach((entry) => {
-      entry.leafletLayer.setOpacity(opacity);
+      try {
+        entry.leafletLayer.setOpacity(opacity);
+      } catch {}
     });
   }, [opacity]);
 
   useEffect(() => {
     return () => {
       Object.values(wmsLayersRef.current).forEach((entry) => {
-        if (map.hasLayer(entry.leafletLayer)) {
-          map.removeLayer(entry.leafletLayer);
-        }
+        try {
+          if (map.hasLayer(entry.leafletLayer)) {
+            map.removeLayer(entry.leafletLayer);
+          }
+        } catch {}
       });
       wmsLayersRef.current = {};
     };

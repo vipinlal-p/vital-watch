@@ -59,7 +59,9 @@ export default function LocationMarkerControl() {
 
       // ✅ remove old marker if exists
       if (markerRef.current) {
-        map.removeLayer(markerRef.current);
+        try {
+          map.removeLayer(markerRef.current);
+        } catch {}
       }
 
       // ✅ use Leaflet’s default marker
@@ -147,7 +149,9 @@ export default function LocationMarkerControl() {
   // ✅ remove marker when toggle is switched OFF
   useEffect(() => {
     if (!enabled && markerRef.current) {
-      map.removeLayer(markerRef.current);
+      try {
+        map.removeLayer(markerRef.current);
+      } catch {}
       markerRef.current = null;
     }
   }, [enabled, map]);

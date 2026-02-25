@@ -86,6 +86,9 @@ export default function SearchBar({
     const el = controlRef.current;
     if (!el) return;
 
+    L.DomEvent.disableClickPropagation(el);
+    L.DomEvent.disableScrollPropagation(el);
+
     const onWheel = (e) => e.stopPropagation();
     const onDblClick = (e) => e.stopPropagation();
     const onTouchMove = (e) => e.stopPropagation();
@@ -184,8 +187,15 @@ export default function SearchBar({
 
     setQuery(display_name);
     setSuggestions([]);
+    setIsFocused(false);
     setDestination(coords);
     if (onDestinationChange) onDestinationChange(coords);
+  };
+
+  const handleSuggestionPick = (e, place) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSelect(place);
   };
 
   // -----------------------------
@@ -861,11 +871,9 @@ export default function SearchBar({
             return (
               <li
                 key={i}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSelect(s);
-                }}
+                onPointerDown={(e) => handleSuggestionPick(e, s)}
+                onMouseDown={(e) => handleSuggestionPick(e, s)}
+                onClick={(e) => handleSuggestionPick(e, s)}
               >
                 <div className="flex items-start gap-2">
                   <MapPin size={16} className="text-gray-500 mt-1" />

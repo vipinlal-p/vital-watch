@@ -20,8 +20,21 @@ export default function NearbyPlacesControl({ userLocation, destination }) {
   const [hasResults, setHasResults] = useState(false);
   const [locationChoice, setLocationChoice] = useState("auto"); // auto / user / destination
   const [showDropdown, setShowDropdown] = useState(false);
+  const controlRef = useRef(null);
   const poiMarkersRef = useRef([]);
   const bufferCircleRef = useRef(null);
+
+  useEffect(() => {
+    const node = controlRef.current;
+    if (!node) return;
+    L.DomEvent.disableClickPropagation(node);
+    L.DomEvent.disableScrollPropagation(node);
+    L.DomEvent.on(node, "dblclick", L.DomEvent.stopPropagation);
+
+    return () => {
+      L.DomEvent.off(node, "dblclick", L.DomEvent.stopPropagation);
+    };
+  }, []);
 
   // -----------------------------
   // Custom Icons
@@ -285,11 +298,12 @@ export default function NearbyPlacesControl({ userLocation, destination }) {
   };
 
   return (
-    <div className="poi-wrapper">
+    <div className="poi-wrapper" ref={controlRef}>
 <button
   type="button"
   className={`map-poi-btn ${hasResults ? "active" : ""}`}
   title={hasResults ? "Clear Nearby" : "Find Nearby"}
+  onDoubleClick={(e) => e.stopPropagation()}
   onClick={() => {
     hasResults ? clearPOIs() : setShowMenu((s) => !s);
   }}

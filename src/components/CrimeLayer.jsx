@@ -43,10 +43,12 @@ function CrimeLayer() {
   useEffect(() => {
     if (!map) return;
 
-    if (layerRef.current) {
-      map.removeLayer(layerRef.current);
-      layerRef.current = null;
-    }
+    try {
+      if (layerRef.current) {
+        map.removeLayer(layerRef.current);
+        layerRef.current = null;
+      }
+    } catch {}
     if (!enabled) return;
 
     const url =
@@ -205,10 +207,12 @@ function CrimeLayer() {
 
     return () => {
       isCancelled = true;
-      if (layerRef.current) {
-        map.removeLayer(layerRef.current);
-        layerRef.current = null;
-      }
+      try {
+        if (layerRef.current) {
+          map.removeLayer(layerRef.current);
+          layerRef.current = null;
+        }
+      } catch {}
     };
   }, [map, enabled, isLoggedIn]);
 

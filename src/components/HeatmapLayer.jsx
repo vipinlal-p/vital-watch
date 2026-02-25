@@ -57,14 +57,18 @@ function HeatmapLayer() {
   useEffect(() => {
     if (!map) return;
 
-    if (heatLayerRef.current) {
-      map.removeLayer(heatLayerRef.current);
-      heatLayerRef.current = null;
-    }
-    if (legendRef.current) {
-      map.removeControl(legendRef.current);
-      legendRef.current = null;
-    }
+    try {
+      if (heatLayerRef.current) {
+        map.removeLayer(heatLayerRef.current);
+        heatLayerRef.current = null;
+      }
+    } catch {}
+    try {
+      if (legendRef.current) {
+        map.removeControl(legendRef.current);
+        legendRef.current = null;
+      }
+    } catch {}
 
     if (!enabled) return;
 
@@ -139,14 +143,18 @@ function HeatmapLayer() {
 
     return () => {
       isCancelled = true;
-      if (heatLayerRef.current) {
-        map.removeLayer(heatLayerRef.current);
-        heatLayerRef.current = null;
-      }
-      if (legendRef.current) {
-        map.removeControl(legendRef.current);
-        legendRef.current = null;
-      }
+      try {
+        if (heatLayerRef.current) {
+          map.removeLayer(heatLayerRef.current);
+          heatLayerRef.current = null;
+        }
+      } catch {}
+      try {
+        if (legendRef.current) {
+          map.removeControl(legendRef.current);
+          legendRef.current = null;
+        }
+      } catch {}
     };
   }, [map, enabled, year, crimeType]);
 

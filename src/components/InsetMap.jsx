@@ -39,7 +39,13 @@ function RoundedRectangle({ bounds }) {
     map.on("zoomend moveend", update);
 
     return () => {
-      overlayPane.removeChild(div);
+      try {
+        if (overlayPane && div && overlayPane.contains(div)) {
+          overlayPane.removeChild(div);
+        }
+      } catch (err) {
+        // avoid blocking route transitions on teardown races
+      }
       map.off("zoomend moveend", update);
     };
   }, [bounds, map]);

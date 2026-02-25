@@ -61,7 +61,7 @@ function Navbar() {
 
   return (
     <>
-      <nav className="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white py-2 px-4">
+      <nav className="relative z-[5000] bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white py-2 px-4">
         <div className="w-full flex justify-between items-center">
           {/* Left side - Logo + Title */}
           <div className="flex items-center">
@@ -69,9 +69,7 @@ function Navbar() {
               <img src="/logo.png" alt="Logo" className="h-10 w-12 mr-2" />
 {/* Title + Subtitle stacked */}
 <div className="flex flex-col leading-tight">
-  <Link to="/" className="text-xl font-bold">
-    VitalWatch
-  </Link>
+  <span className="text-xl font-bold">VitalWatch</span>
   <p className="text-xs italic text-gray-300">
     Smart health monitoring made simple
   </p>

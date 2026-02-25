@@ -57,17 +57,21 @@ function MapLayersToggle({ activeBase, setActiveBase }) {
     const selected = baseLayers[activeBase];
     if (!selected) return;
 
-    if (baseLayerRef.current && map.hasLayer(baseLayerRef.current)) {
-      map.removeLayer(baseLayerRef.current);
-    }
+    try {
+      if (baseLayerRef.current && map.hasLayer(baseLayerRef.current)) {
+        map.removeLayer(baseLayerRef.current);
+      }
+    } catch {}
 
     const nextBase = buildBaseLayer(selected).addTo(map);
     baseLayerRef.current = nextBase;
 
     return () => {
-      if (baseLayerRef.current && map.hasLayer(baseLayerRef.current)) {
-        map.removeLayer(baseLayerRef.current);
-      }
+      try {
+        if (baseLayerRef.current && map.hasLayer(baseLayerRef.current)) {
+          map.removeLayer(baseLayerRef.current);
+        }
+      } catch {}
       baseLayerRef.current = null;
     };
   }, [map, activeBase]);

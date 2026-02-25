@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { GeoJSON, useMap } from "react-leaflet";
 import L from "leaflet";
 import shp from "shpjs";
@@ -74,23 +74,28 @@ function VectorLayers({
   const [uploadedLayers, setUploadedLayers] = useState([]);
   const fileInputRef = useRef(null);
   const controlRef = useRef(null);
+  const lastLegendPayloadRef = useRef("");
 
-  const vectorOptions = Object.entries(vectorFileModules)
-    .map(([filePath, mod], idx) => {
-      const data = mod?.default ?? mod;
-      if (!isGeoJsonLike(data)) return null;
-      const base = filePath.split("/").pop() || "";
-      const id = base.replace(/\.(json|geojson)$/i, "");
-      return {
-        id,
-        name: toTitle(id),
-        data,
-        color: VECTOR_COLORS[idx % VECTOR_COLORS.length],
-        isHospital: id.toLowerCase().includes("hospital"),
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const vectorOptions = useMemo(
+    () =>
+      Object.entries(vectorFileModules)
+        .map(([filePath, mod], idx) => {
+          const data = mod?.default ?? mod;
+          if (!isGeoJsonLike(data)) return null;
+          const base = filePath.split("/").pop() || "";
+          const id = base.replace(/\.(json|geojson)$/i, "");
+          return {
+            id,
+            name: toTitle(id),
+            data,
+            color: VECTOR_COLORS[idx % VECTOR_COLORS.length],
+            isHospital: id.toLowerCase().includes("hospital"),
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    []
+  );
 
   useEffect(() => {
     setActiveLayers((prev) => {
@@ -380,26 +385,28 @@ function VectorLayers({
   const visible =
     typeof externallyOpen === "boolean" ? externallyOpen : visibleLocal;
 
-  const activeVectorLegend = vectorOptions.filter(
-    (option) => Boolean(activeLayers[option.id])
-  );
-  const activeUploadedLegend = uploadedLayers.filter((layer) => layer.visible);
-
   useEffect(() => {
     const legendItems = [
-      ...activeVectorLegend.map((option) => ({
-        id: option.id,
-        name: option.name,
-        color: option.color,
-      })),
-      ...activeUploadedLegend.map((layer) => ({
-        id: String(layer.id),
-        name: layer.name,
-        color: "#ff7800",
-      })),
+      ...vectorOptions
+        .filter((option) => Boolean(activeLayers[option.id]))
+        .map((option) => ({
+          id: option.id,
+          name: option.name,
+          color: option.color,
+        })),
+      ...uploadedLayers
+        .filter((layer) => layer.visible)
+        .map((layer) => ({
+          id: String(layer.id),
+          name: layer.name,
+          color: "#ff7800",
+        })),
     ];
+    const payload = JSON.stringify(legendItems);
+    if (payload === lastLegendPayloadRef.current) return;
+    lastLegendPayloadRef.current = payload;
     onLegendChange?.(legendItems);
-  }, [activeUploadedLegend, activeVectorLegend, onLegendChange]);
+  }, [activeLayers, uploadedLayers, vectorOptions, onLegendChange]);
 
   return (
     <div
