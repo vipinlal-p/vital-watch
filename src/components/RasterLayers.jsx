@@ -1,4 +1,4 @@
-// src/components/RaterLayers.jsx
+// src/components/RasterLayers.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
@@ -85,7 +85,7 @@ const getPreferredCrs = (mapCrs, supportedCrs = []) => {
   return null;
 };
 
-export default function RaterLayers({
+export default function RasterLayers({
   hideToggle = false,
   externallyOpen,
   containerStyle,

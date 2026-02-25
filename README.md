@@ -1,142 +1,120 @@
-# VectorWatch
+# 🗺️ VitalWatch
 
-Interactive web GIS with:
-- Base map switcher
-- Vector layer management (local files + uploaded shapefile/GeoJSON)
-- Raster layer management from GeoServer WMS
-- Search, nearby places, directions, measurement, and trends/crime overlays
+**An interactive web GIS platform for visualizing and analyzing geospatial data.**
 
-## Stack
-- Frontend: React + Vite + Leaflet (`http://localhost:5173`)
-- Backend: Express (`http://localhost:5000`)
-- Database: PostGIS (`localhost:5432`)
-- GeoServer: WMS source for raster layers (`http://localhost:8080/geoserver`)
+> This project provides a full-stack solution for managing and displaying vector and raster layers, with tools for search, analysis, and more.
 
-## Run With Docker (Recommended)
+---
 
-From project root:
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React-blue?logo=react" alt="Frontend: React">
+  <img src="https://img.shields.io/badge/Backend-Express-lightgrey?logo=express" alt="Backend: Express">
+  <img src="https://img.shields.io/badge/Database-PostGIS-blue?logo=postgresql" alt="Database: PostGIS">
+  <img src="https://img.shields.io/badge/GIS-Leaflet-green?logo=leaflet" alt="GIS: Leaflet">
+  <img src="https://img.shields.io/badge/Contributions-Welcome-orange" alt="Contributions Welcome">
+</p>
 
-```bash
-docker compose up --build
-```
+---
 
-If your machine only supports legacy command:
+## ✨ Features
 
-```bash
-docker-compose up --build
-```
+-   **Interactive Map:** A fast, responsive map interface powered by Leaflet.
+-   **Base Map Switcher:** Toggle between multiple base layers like OpenStreetMap, Satellite, and Dark Mode.
+-   **Vector Layer Management:**
+    -   Load vector data from local project files.
+    -   Upload user-provided Shapefiles (.zip) and GeoJSON files.
+    -   Client-side reprojection for common CRS.
+-   **Raster Layer Management:**
+    -   Dynamically load and display raster layers from a GeoServer WMS instance.
+    -   Adjust layer opacity.
+-   **GIS Tools:**
+    -   **Search:** Find locations and points of interest.
+    -   **Nearby Places:** Discover what's around a given point.
+    -   **Directions:** Get routing between two points.
+    -   **Measurement:** Measure distances and areas on the map.
+-   **Data Overlays:**
+    -   Display crime data and trends.
+    -   Heatmap visualizations.
+-   **User Accounts:** Backend supports user registration and login with JWT authentication.
 
-Run detached:
+## 🛠️ Tech Stack
 
-```bash
-docker compose up --build -d
-# or
-docker-compose up --build -d
-```
+| Category      | Technology                                         |
+| :------------ | :------------------------------------------------- |
+| **Frontend**  | [React](https://react.dev/), [Vite](https://vitejs.dev/), [Leaflet](https://leafletjs.com/), [Tailwind CSS](https://tailwindcss.com/) |
+| **Backend**   | [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)                   |
+| **Database**  | [PostgreSQL](https://www.postgresql.org/) + [PostGIS](https://postgis.net/) extension            |
+| **Geo-Server**| [GeoServer](https://geoserver.org/) (via Docker)                     |
+| **Container** | [Docker](https://www.docker.com/)                                  |
 
-Stop services:
+## 🚀 Getting Started
 
-```bash
-docker compose down
-# or
-docker-compose down
-```
+This project is designed to be run with Docker. Ensure you have Docker and Docker Compose installed on your system.
 
-## Services In Docker
-- `frontend` container: Vite dev server
-- `backend` container: Express API
-- `db` container: PostGIS
-- `geoserver` container: GeoServer + mounted raster folder
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd vitalwatch
+    ```
 
-Persistent volumes:
-- `postgres_data`
-- `geoserver_data`
+2.  **Build and run the services:**
+    From the project root, run the following command:
+    ```bash
+    docker compose up --build
+    ```
+    > **Note:** If you are using an older version of Docker Compose, you may need to use the hyphenated command: `docker-compose up --build`.
 
-Mounted raster input folder:
-- `infrastructure/geoserver/rasters/` -> `/opt/geoserver/rasters` (read-only in container)
+3.  **Access the services:**
+    *   **Frontend Application:** [http://localhost:5173](http://localhost:5173)
+    *   **Backend API:** `http://localhost:5000`
+    *   **GeoServer:** [http://localhost:8080/geoserver](http://localhost:8080/geoserver)
+    *   **Database (PostGIS):** Connect on port `5432`
 
-## Raster Layer Workflow (GeoServer)
+### Useful Docker Commands
 
-1. Put georeferenced rasters (`.tif`, etc.) in:
-   - `infrastructure/geoserver/rasters/`
-2. Open GeoServer:
-   - `http://localhost:8080/geoserver`
-   - default user/pass in compose: `admin` / `geoserver`
-3. In GeoServer UI:
-   - create workspace `raster` (or your configured workspace)
-   - create a store for each raster from `/opt/geoserver/rasters`
-   - publish each layer and compute native bounds
-4. In app:
-   - open **Raster Layers**
-   - layers are auto-loaded from `GetCapabilities`
-   - enable/disable layers and adjust opacity
+-   **Run in detached mode:**
+    ```bash
+    docker compose up --build -d
+    ```
+-   **Stop all services:**
+    ```bash
+    docker compose down
+    ```
 
-CRS behavior:
-- Map default stays in Web Mercator (`EPSG:3857`)
-- Raster panel chooses CRS supported by both map/layer
-- fallback order: map CRS -> `EPSG:3857` -> `EPSG:4326`
+## ⚙️ Configuration
 
-## Vector Layer Workflow
-
-- Built-in vectors auto-populate from `src/data/*.{json,geojson}`
-- You can upload:
-  - zipped shapefile (`.zip`)
-  - `.geojson` / `.json`
-- Uploaded vectors are normalized and rendered on map
-- Basic CRS inference/reprojection is applied for common cases (`EPSG:4326` and likely `EPSG:3857` inputs)
-
-## Layer UI
-
-- Split control at top-left:
-  - **Vector Layers**
-  - **Raster Layers**
-- Only one dropdown is open at a time
-- Shared map legend appears at bottom-left above the scale bar
-
-## Environment Variables
-
-Copy `.env.example` to `.env` if you want overrides.
-
-Important vars used by frontend:
-- `VITE_API_BASE_URL`
-- `VITE_GEOSERVER_BASE_URL`
-- `VITE_GEOSERVER_WMS_URL`
-- `VITE_GEOSERVER_OWS_URL`
-- `VITE_GEOSERVER_WORKSPACE`
-- `VITE_GEOSERVER_DEM_LAYER`
-- `VITE_GEOSERVER_ASPECT_LAYER`
-- `VITE_GEOSERVER_POPULATION_LAYER`
-
-## Common Issues
-
-### `Cannot start service geoserver ... port 8080 already in use`
-Another process is already bound to `8080` (often local GeoServer/Tomcat).
-
-Fix options:
-- Stop the process using `8080`, then restart docker compose.
-- Or remap geoserver port in `docker-compose.yml` (for example `8081:8080`) and update frontend env URLs accordingly.
-
-### `unknown shorthand flag: 'd' in -d`
-You likely ran `docker -d ...` directly. Use:
+You can customize the application by creating a `.env` file in the project root. Copy the example file to get started:
 
 ```bash
-docker compose up -d
+cp .env.example .env
 ```
 
-or:
+The following table describes the key environment variables for the frontend:
 
-```bash
-docker-compose up -d
-```
+| Variable                         | Description                                            | Default                            |
+| :------------------------------- | :----------------------------------------------------- | :--------------------------------- |
+| `VITE_API_BASE_URL`              | URL for the backend Express API.                       | `http://localhost:5000`            |
+| `VITE_GEOSERVER_BASE_URL`        | Base URL for the GeoServer instance.                   | `http://localhost:8080`            |
+| `VITE_GEOSERVER_WMS_URL`         | The WMS endpoint for fetching raster tiles.            | `http://localhost:8080/geoserver/wms`|
+| `VITE_GEOSERVER_OWS_URL`         | The OWS endpoint for GeoServer services.               | `.../geoserver/crime_map_app/ows`  |
+| `VITE_GEOSERVER_WORKSPACE`       | The GeoServer workspace where raster layers are stored.| `raster`                           |
+
+## 🤔 Common Issues
+
+### Port 8080 is already in use
+This error means another process (often a local Tomcat or another GeoServer instance) is using port 8080.
+
+**Solution:** Stop the other process, or remap the port in `docker-compose.yml`. For example, change `8080:8080` to `8081:8080` and update the `VITE_GEOSERVER_...` URLs in your `.env` file.
 
 ### `Could not load layer catalog`
-Usually one of:
-- GeoServer not running
-- wrong WMS URL
-- workspace mismatch (`VITE_GEOSERVER_WORKSPACE`)
-- no published layers in that workspace
+This usually indicates a problem with the GeoServer connection. Check the following:
+-   Is the `geoserver` container running? (`docker ps`)
+-   Is the `VITE_GEOSERVER_WMS_URL` correct?
+-   Does the workspace specified in `VITE_GEOSERVER_WORKSPACE` exist on GeoServer?
+-   Have you published any layers within that workspace?
 
-## Project Notes
+## 📝 Project Notes
 
-- Component file is currently named `src/components/RaterLayers.jsx` (UI label is **Raster Layers**).
-- Raster source rasters in `infrastructure/geoserver/rasters/` are ignored by `.gitignore` for common local file types; keep committed seed files only if intentionally tracked.
+- The React component for raster layers is currently named `src/components/RaterLayers.jsx`. This is likely a typo and should be `RasterLayers.jsx`.
+- Raster files (`.tif`) placed in `infrastructure/geoserver/rasters/` are processed by a startup script to automatically publish them to GeoServer.
+- The `.gitignore` file is configured to ignore most common raster file types in that directory. If you want to commit a new "seed" raster, you may need to force-add it with `git add -f`.

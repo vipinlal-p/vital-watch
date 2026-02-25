@@ -20,7 +20,7 @@ import { useWindowSize, useDebounce } from "/src/hooks"; // ✅ use hooks from i
 import CrimeLayer from "../components/CrimeLayer";
 import HeatmapLayer from "../components/HeatmapLayer";
 import TrendsLayer from "../components/TrendsLayer";
-import RaterLayers from "../components/RaterLayers";
+import RasterLayers from "../components/RasterLayers";
 
 const MainMap = React.memo(
   ({ setBounds, setCenterZoom, activeBase, setActiveBase }) => {
@@ -128,7 +128,7 @@ function Home() {
         <CrimeLayer />
         <HeatmapLayer />
         <TrendsLayer />
-        <RaterLayers
+        <RasterLayers
           hideToggle={true}
           externallyOpen={layerPanel === "raster"}
           containerStyle={sharedLayerPanelStyle}
