@@ -9,11 +9,7 @@ const WMS_URL = GEOSERVER_WMS_URL;
 const GEOSERVER_WORKSPACE =
   (import.meta.env.VITE_GEOSERVER_WORKSPACE || "raster").trim();
 
-const DEFAULT_LAYER_NAMES = [
-  import.meta.env.VITE_GEOSERVER_DEM_LAYER || "raster:dem",
-  import.meta.env.VITE_GEOSERVER_ASPECT_LAYER || "raster:aspect",
-  import.meta.env.VITE_GEOSERVER_POPULATION_LAYER || "raster:population_density",
-];
+const DEFAULT_LAYER_NAMES = [];
 
 const normalizeEpsg = (crsText) => {
   if (!crsText || typeof crsText !== "string") return null;
@@ -186,36 +182,9 @@ export default function RaterLayers({
   }, []);
 
   const allLayers = useMemo(() => {
-    const catalogByName = new Map(catalogLayers.map((layer) => [layer.name, layer]));
-
-    const defaults = DEFAULT_LAYER_NAMES.map((name) => {
-      const fromCatalog = catalogByName.get(name);
-      if (fromCatalog) return fromCatalog;
-      return {
-        id: name,
-        name,
-        title: name,
-        supportedCrs: [],
-      };
-    });
-
-    const manualOnly = Object.keys(activeLayers)
-      .filter((name) => !catalogByName.has(name) && !DEFAULT_LAYER_NAMES.includes(name))
-      .map((name) => ({
-        id: name,
-        name,
-        title: `${name} (manual)`,
-        supportedCrs: [],
-      }));
-
-    const merged = new Map();
-    [...defaults, ...catalogLayers, ...manualOnly].forEach((layer) => {
-      if (!layer?.name) return;
-      merged.set(layer.name, layer);
-    });
-
-    return [...merged.values()];
-  }, [activeLayers, catalogLayers]);
+    // Only show layers from the GeoServer catalog to avoid duplicates
+    return catalogLayers;
+  }, [catalogLayers]);
 
   const filteredLayers = useMemo(() => {
     const search = filterText.trim().toLowerCase();

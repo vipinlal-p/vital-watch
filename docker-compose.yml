@@ -66,6 +66,18 @@ services:
       - geoserver
     restart: unless-stopped
 
+  geoserver-init:
+    image: curlimages/curl
+    container_name: vital-watch-geoserver-init
+    depends_on:
+      - geoserver
+    volumes:
+      - ./scripts/publish_rasters.sh:/scripts/publish_rasters.sh:ro
+      - ./scripts/wait-for-geoserver.sh:/scripts/wait-for-geoserver.sh:ro
+      - ./infrastructure/geoserver/rasters:/infrastructure/geoserver/rasters:ro
+    command: sh /scripts/wait-for-geoserver.sh
+    restart: on-failure
+
 volumes:
   postgres_data:
   geoserver_data:
