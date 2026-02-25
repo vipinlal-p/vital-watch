@@ -53,8 +53,8 @@ This project is designed to be run with Docker. Ensure you have Docker and Docke
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
-    cd vitalwatch
+    git clone https://github.com/vipinlal-p/vital-watch.git
+    cd vital-watch
     ```
 
 2.  **Build and run the services:**
