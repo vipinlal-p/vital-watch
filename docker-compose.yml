@@ -1,7 +1,7 @@
 services:
   db:
     image: postgis/postgis:16-3.4
-    container_name: vector-map-db
+    container_name: vital-watch-db
     environment:
       POSTGRES_DB: crime_map_db
       POSTGRES_USER: postgres
@@ -17,7 +17,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.backend
-    container_name: vector-map-backend
+    container_name: vital-watch-backend
     environment:
       PORT: 5000
       JWT_SECRET: your-secret-key
@@ -34,7 +34,7 @@ services:
 
   geoserver:
     image: kartoza/geoserver:latest
-    container_name: vector-map-geoserver
+    container_name: vital-watch-geoserver
     environment:
       GEOSERVER_ADMIN_USER: admin
       GEOSERVER_ADMIN_PASSWORD: geoserver
@@ -49,7 +49,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    container_name: vector-map-frontend
+    container_name: vital-watch-frontend
     environment:
       VITE_API_BASE_URL: http://localhost:5000
       VITE_GEOSERVER_BASE_URL: http://localhost:8080
