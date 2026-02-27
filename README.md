@@ -115,6 +115,5 @@ This usually indicates a problem with the GeoServer connection. Check the follow
 
 ## 📝 Project Notes
 
-- The React component for raster layers is currently named `src/components/RaterLayers.jsx`. This is likely a typo and should be `RasterLayers.jsx`.
 - Raster files (`.tif`) placed in `infrastructure/geoserver/rasters/` are processed by a startup script to automatically publish them to GeoServer.
 - The `.gitignore` file is configured to ignore most common raster file types in that directory. If you want to commit a new "seed" raster, you may need to force-add it with `git add -f`.
