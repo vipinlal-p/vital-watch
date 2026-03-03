@@ -3,8 +3,8 @@
 /* --- Custom layer control (replaces Leaflet's default) --- */
 .custom-layer-control {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 16px;
+  right: 16px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -16,12 +16,12 @@
 
 /* Rounded square toggle button */
 .custom-toggle-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   background: #fff;
   border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(60, 64, 67, 0.3);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -55,8 +55,8 @@
   right: 100%;
   margin-right: 8px;
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(60, 64, 67, 0.3);
   padding: 12px;
   min-width: 160px;
   pointer-events: auto;
@@ -85,15 +85,102 @@
   cursor: pointer;
 }
 
+.layer-switcher-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #d8dde4;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, 0.28);
+}
+
+.layer-thumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.layer-thumbs-extra {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-width 0.22s ease, opacity 0.22s ease;
+}
+
+.layer-switcher-bar.expanded .layer-thumbs-extra {
+  max-width: 120px;
+  opacity: 1;
+}
+
+.layer-thumb-btn {
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  padding: 0;
+  width: 26px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.layer-thumb-btn.active {
+  outline: 2px solid #1a73e8;
+  outline-offset: 1px;
+}
+
+.layer-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.layer-thumb-roadmap {
+  background: linear-gradient(135deg, #b7d5e4 0%, #dbe6dc 100%);
+}
+
+.layer-thumb-satellite {
+  background: linear-gradient(135deg, #8f8e68 0%, #b8aa78 50%, #7c8c59 100%);
+}
+
+.layer-thumb-topo {
+  background: linear-gradient(135deg, #9eb27e 0%, #c9bf8c 50%, #8aa86c 100%);
+}
+
+.layer-thumb-osm {
+  background: linear-gradient(135deg, #c6d8eb 0%, #dfe9df 100%);
+}
+
+.layer-thumb-dark {
+  background: linear-gradient(135deg, #3c4045 0%, #595f66 100%);
+}
+
+.layer-chev-btn {
+  border: none;
+  border-left: 1px solid #e4e7ec;
+  padding: 0 0 0 8px;
+  height: 24px;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  color: #454b54;
+  cursor: pointer;
+}
+
 /* --- Custom Zoom Control --- */
 .custom-zoom-group {
   position: absolute;
-  top: 60px;
-  /* below the layer toggle */
   right: 12px;
+  bottom: 62px;
   display: flex;
   flex-direction: column;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   z-index: 1000;
@@ -102,8 +189,8 @@
 }
 
 .custom-zoom-btn {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   background: #fff;
   border: none;
   cursor: pointer;
@@ -154,7 +241,7 @@
 
 /* --- Move scale bar up like Google Maps --- */
 .leaflet-bottom.leaflet-left .leaflet-control-scale {
-  bottom: 24px !important;
+  bottom: 18px !important;
   left: 16px !important;
 }
 

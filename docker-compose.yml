@@ -3,7 +3,7 @@ services:
     image: postgis/postgis:16-3.4
     container_name: vital-watch-db
     environment:
-      POSTGRES_DB: crime_map_db
+      POSTGRES_DB: vital_watch_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -25,7 +25,7 @@ services:
       PGPORT: 5432
       PGUSER: postgres
       PGPASSWORD: postgres
-      PGDATABASE: crime_map_db
+      PGDATABASE: vital_watch_db
     ports:
       - "5000:5000"
     depends_on:
@@ -54,7 +54,6 @@ services:
       VITE_API_BASE_URL: http://localhost:5000
       VITE_GEOSERVER_BASE_URL: http://localhost:8080
       VITE_GEOSERVER_WMS_URL: http://localhost:8080/geoserver/wms
-      VITE_GEOSERVER_OWS_URL: http://localhost:8080/geoserver/crime_map_app/ows
       VITE_GEOSERVER_WORKSPACE: raster
       VITE_GEOSERVER_DEM_LAYER: raster:dem
       VITE_GEOSERVER_ASPECT_LAYER: raster:aspect

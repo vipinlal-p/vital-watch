@@ -1,9 +1,9 @@
-// src/components/CrimeLayer.jsx
+// src/components/DiseaseLayer.jsx
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "../styles/map-controls.css";
-import "../styles/add-crime-data.css";
+import "../styles/layer-panels.css";
 import diseaseCsvRaw from "/disease_data/tvm_dummy_data.csv?raw";
 
 const parseCsvRow = (line) => {
@@ -111,7 +111,7 @@ const summarizeByWard = (rows) => {
   }));
 };
 
-function CrimeLayer({
+function DiseaseLayer({
   hideToggle = false,
   externallyOpen,
   containerStyle,
@@ -274,13 +274,13 @@ function CrimeLayer({
 
   return (
     <div
-      className="add-crime-control"
+      className="layer-panel-control"
       style={containerStyle || { top: "168px", left: "12px", width: "270px" }}
       ref={toggleRef}
     >
       {!hideToggle && (
         <button
-          className="add-crime-btn"
+          className="layer-panel-btn"
           title="Disease Layer"
           onClick={() => setVisibleLocal((p) => !p)}
         >
@@ -289,7 +289,7 @@ function CrimeLayer({
       )}
 
       {visible && (
-        <div className="add-crime-form raster-panel">
+        <div className="layer-panel-form raster-panel">
           <label className="custom-option">
             <input
               type="checkbox"
@@ -304,4 +304,4 @@ function CrimeLayer({
   );
 }
 
-export default CrimeLayer;
+export default DiseaseLayer;

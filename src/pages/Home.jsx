@@ -4,35 +4,28 @@ import { MapContainer, useMap, ScaleControl } from "react-leaflet"; // ✅ impor
 import "leaflet/dist/leaflet.css";
 import "../styles/map-controls.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
-import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 
 import MapLayersToggle from "/src/components/MapLayersToggle";
 import ZoomControlButton from "/src/components/ZoomControlButton";
 import LocateControlButton from "/src/components/LocateControlButton";
 import CurrentLocationMarker from "/src/components/CurrentLocationMarker";
-import InsetMap from "/src/components/InsetMap";
 import VectorLayers from "../components/VectorLayers";
 import MeasureControl from "../components/MeasureControl";
 import LocationMarkerControl from "/src/components/LocationMarkerControl";
 import SearchBar from "../components/SearchBar";
 import NearbyPlacesControl from "../components/NearbyPlacesControl";
-import { useWindowSize, useDebounce } from "/src/hooks"; // ✅ use hooks from index.js
-import CrimeLayer from "../components/CrimeLayer";
+import DiseaseLayer from "../components/DiseaseLayer";
 import HeatmapLayer from "../components/HeatmapLayer";
 import TrendsLayer from "../components/TrendsLayer";
 import RasterLayers from "../components/RasterLayers";
 
 const MainMap = React.memo(
-  ({ setBounds, setCenterZoom, activeBase, setActiveBase }) => {
+  ({ setBounds, activeBase, setActiveBase }) => {
     const map = useMap();
 
     const updateView = useCallback(() => {
       setBounds(map.getBounds());
-      setCenterZoom({
-        center: map.getCenter(),
-        zoom: map.getZoom(),
-      });
-    }, [map, setBounds, setCenterZoom]);
+    }, [map, setBounds]);
 
     useEffect(() => {
       map.on("moveend zoomend", updateView);
@@ -59,30 +52,16 @@ const MainMap = React.memo(
 
 function Home() {
   const position = [8.5241, 76.9366]; // Trivandrum default
-  const [bounds, setBounds] = useState(null);
-  const [centerZoom, setCenterZoom] = useState({ center: position, zoom: 8 });
-  const [isInsetVisible, setIsInsetVisible] = useState(true);
-  const [width] = useWindowSize(); // ✅ external hook
-  const debouncedBounds = useDebounce(bounds, 100); // ✅ external hook
   const [userLocation, setUserLocation] = useState(null);
   const [destination, setDestination] = useState(null);
-  const [layerPanel, setLayerPanel] = useState(null);
-  const [diseasePanel, setDiseasePanel] = useState(null);
+  const [nearbyRequest, setNearbyRequest] = useState(null);
+  const [activeLayerMenu, setActiveLayerMenu] = useState(null);
   const [rasterLegendItems, setRasterLegendItems] = useState([]);
   const [vectorLegendItems, setVectorLegendItems] = useState([]);
 
   const [activeBase, setActiveBase] = useState("osm");
 
-  const insetSize = width < 640 ? 160 : width < 1024 ? 200 : 260;
-  const sharedLayerPanelStyle = { top: "168px", left: "12px", width: "270px" };
-
-  useEffect(() => {
-    if (bounds) {
-      setIsInsetVisible(true);
-      const timer = setTimeout(() => setIsInsetVisible(false), 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [bounds]);
+  const sharedLayerPanelStyle = { top: "112px", left: "12px", width: "270px" };
 
   const hasLegendItems =
     rasterLegendItems.length > 0 || vectorLegendItems.length > 0;
@@ -93,48 +72,6 @@ function Home() {
       className="w-full relative z-0"
       style={{ height: "calc(100vh - 60px)" }} // adjust for Navbar
     >
-      {/* Main Map */}
-      <div className="layer-split-control" style={{ top: "80px", left: "12px" }}>
-        <button
-          className={`layer-split-btn ${layerPanel === "vector" ? "active" : ""}`}
-          onClick={() =>
-            setLayerPanel((prev) => (prev === "vector" ? null : "vector"))
-          }
-        >
-          Vector Layers
-        </button>
-        <button
-          className={`layer-split-btn ${layerPanel === "raster" ? "active" : ""}`}
-          onClick={() =>
-            setLayerPanel((prev) => (prev === "raster" ? null : "raster"))
-          }
-        >
-          Raster Layers
-        </button>
-      </div>
-      <div className="layer-split-control" style={{ top: "124px", left: "12px" }}>
-        <button
-          className={`layer-split-btn ${diseasePanel === "disease-layer" ? "active" : ""}`}
-          onClick={() =>
-            setDiseasePanel((prev) =>
-              prev === "disease-layer" ? null : "disease-layer"
-            )
-          }
-        >
-          Disease Layer
-        </button>
-        <button
-          className={`layer-split-btn ${diseasePanel === "disease-heatmap" ? "active" : ""}`}
-          onClick={() =>
-            setDiseasePanel((prev) =>
-              prev === "disease-heatmap" ? null : "disease-heatmap"
-            )
-          }
-        >
-          Disease Heatmap
-        </button>
-      </div>
-
       <MapContainer
         center={position}
         zoom={10}
@@ -143,41 +80,53 @@ function Home() {
         doubleClickZoom={false}
       >
         <MainMap
-          setBounds={setBounds}
-          setCenterZoom={setCenterZoom}
+          setBounds={() => {}}
           activeBase={activeBase}
           setActiveBase={setActiveBase}
         />
-        <CrimeLayer
+        <DiseaseLayer
           hideToggle={true}
-          externallyOpen={diseasePanel === "disease-layer"}
+          externallyOpen={activeLayerMenu === "disease-layer"}
           containerStyle={sharedLayerPanelStyle}
         />
         <HeatmapLayer
           hideToggle={true}
-          externallyOpen={diseasePanel === "disease-heatmap"}
+          externallyOpen={activeLayerMenu === "disease-heatmap"}
           containerStyle={sharedLayerPanelStyle}
         />
-        <TrendsLayer />
+        <TrendsLayer
+          hideToggle={true}
+          externallyOpen={activeLayerMenu === "disease-trends"}
+          onRequestClose={() => setActiveLayerMenu(null)}
+        />
         <RasterLayers
           hideToggle={true}
-          externallyOpen={layerPanel === "raster"}
+          externallyOpen={activeLayerMenu === "raster"}
           containerStyle={sharedLayerPanelStyle}
           onLegendChange={setRasterLegendItems}
         />
         <SearchBar
           onLocationChange={setUserLocation}
           onDestinationChange={setDestination}
+          onNearbyRequest={(category) =>
+            setNearbyRequest({ category, requestedAt: Date.now() })
+          }
+          layerMenuValue={activeLayerMenu}
+          onLayerMenuChange={(key) =>
+            setActiveLayerMenu((prev) => (prev === key ? null : key))
+          }
         />
 
         <NearbyPlacesControl
           userLocation={userLocation}
           destination={destination}
+          nearbyRequest={nearbyRequest}
+          hideToggle={true}
         />
         <CurrentLocationMarker />
         <VectorLayers
           hideToggle={true}
-          externallyOpen={layerPanel === "vector"}
+          externallyOpen={activeLayerMenu === "vector"}
           containerStyle={sharedLayerPanelStyle}
           onLegendChange={setVectorLegendItems}
         />
@@ -223,15 +172,6 @@ function Home() {
           )}
         </div>
       )}
-
-      {/* Inset Map */}
-      <InsetMap
-        bounds={debouncedBounds}
-        centerZoom={centerZoom}
-        isVisible={isInsetVisible}
-        insetSize={insetSize}
-        activeBase={activeBase}
-      />
     </div>
   );
 }

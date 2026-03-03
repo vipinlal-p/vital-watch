@@ -7,7 +7,7 @@ export const db = knex({
     host: process.env.PGHOST || "localhost",
     user: process.env.PGUSER || "postgres",
     password: process.env.PGPASSWORD || "postgres",
-    database: process.env.PGDATABASE || "crime_map_db",
+    database: process.env.PGDATABASE || "vital_watch_db",
     port: Number(process.env.PGPORT || 5432),
   },
 });

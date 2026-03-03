@@ -14,7 +14,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-export default function NearbyPlacesControl({ userLocation, destination }) {
+export default function NearbyPlacesControl({
+  userLocation,
+  destination,
+  nearbyRequest,
+  hideToggle = false,
+}) {
   const map = useMap();
   const [showMenu, setShowMenu] = useState(false);
   const [hasResults, setHasResults] = useState(false);
@@ -241,19 +246,30 @@ export default function NearbyPlacesControl({ userLocation, destination }) {
     }
   };
 
+  const resolveBaseLocation = () => {
+    if (locationChoice === "user" && userLocation) return userLocation;
+    if (locationChoice === "destination" && destination) return destination;
+    return destination || userLocation;
+  };
+
   // -----------------------------
   // Handle category click
   // -----------------------------
   const handleCategoryClick = (category) => {
-    let base = null;
-    if (locationChoice === "user" && userLocation) base = userLocation;
-    else if (locationChoice === "destination" && destination)
-      base = destination;
-    else base = destination || userLocation;
+    const base = resolveBaseLocation();
     if (!base) return;
     setShowMenu(false);
     fetchPOIs(category, base);
   };
+
+  useEffect(() => {
+    const category = nearbyRequest?.category;
+    if (!category) return;
+    const base = resolveBaseLocation();
+    if (!base) return;
+    fetchPOIs(category, base);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nearbyRequest?.requestedAt]);
 
   // -----------------------------
   // Render modern dropdown
@@ -298,7 +314,12 @@ export default function NearbyPlacesControl({ userLocation, destination }) {
   };
 
   return (
-    <div className="poi-wrapper" ref={controlRef}>
+    <div
+      className="poi-wrapper"
+      ref={controlRef}
+      style={hideToggle ? { display: "none" } : undefined}
+    >
+{!hideToggle && (
 <button
   type="button"
   className={`map-poi-btn ${hasResults ? "active" : ""}`}
@@ -475,9 +496,9 @@ export default function NearbyPlacesControl({ userLocation, destination }) {
 </svg>
   )}
 </button>
+)}
 
-
-      {!hasResults && showMenu && (
+      {!hideToggle && !hasResults && showMenu && (
         <div className="poi-menu">
           {renderLocationDropdown()}
           <button onClick={() => handleCategoryClick("hospital")}>

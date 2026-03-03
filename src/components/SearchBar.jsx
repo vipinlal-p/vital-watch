@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import {
+  Menu,
   Search,
   X,
   MapPin,
@@ -20,6 +21,9 @@ export default function SearchBar({
   placeholder = "Search location...",
   onLocationChange,
   onDestinationChange,
+  layerMenuValue = null,
+  onLayerMenuChange,
+  onNearbyRequest,
 }) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
@@ -35,6 +39,7 @@ export default function SearchBar({
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [navHeading, setNavHeading] = useState(0);
   const [nextStepDistance, setNextStepDistance] = useState(null);
+  const [layerMenuOpen, setLayerMenuOpen] = useState(false);
 
   const map = useMap();
   const markerRef = useRef(null);
@@ -104,20 +109,58 @@ export default function SearchBar({
     };
   }, []);
 
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!controlRef.current) return;
+      if (!controlRef.current.contains(e.target)) {
+        setLayerMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
   // -----------------------------
   // Get current location
   // -----------------------------
   useEffect(() => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const loc = [pos.coords.latitude, pos.coords.longitude];
-        setUserLocation(loc);
-        if (onLocationChange) onLocationChange(loc);
-      },
-      (err) => console.warn("Geolocation unavailable:", err?.message),
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+
+    const applyLocation = (pos) => {
+      const loc = [pos.coords.latitude, pos.coords.longitude];
+      setUserLocation(loc);
+      if (onLocationChange) onLocationChange(loc);
+    };
+
+    const tryLocate = (options) =>
+      new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, options)
+      );
+
+    (async () => {
+      try {
+        const pos = await tryLocate({
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 0,
+        });
+        applyLocation(pos);
+      } catch {
+        try {
+          const fallbackPos = await tryLocate({
+            enableHighAccuracy: false,
+            timeout: 15000,
+            maximumAge: 600000,
+          });
+          applyLocation(fallbackPos);
+        } catch (fallbackErr) {
+          // Optional startup location; keep quiet on timeout/denied.
+          if (fallbackErr?.code !== 1 && fallbackErr?.code !== 3) {
+            console.warn("Geolocation unavailable:", fallbackErr?.message);
+          }
+        }
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -266,6 +309,11 @@ export default function SearchBar({
         // user cancelled prompt
       }
     }
+  };
+
+  const handleQuickNearby = (category) => {
+    setIsFocused(false);
+    onNearbyRequest?.(category);
   };
 
   // -----------------------------
@@ -647,6 +695,15 @@ export default function SearchBar({
     <div className="map-search-wrapper" ref={controlRef}>
       <div className="map-search-row">
       <form className="map-search-bar" onSubmit={handleSubmit}>
+        <button
+          type="button"
+          className="map-layer-menu-btn"
+          title="Layers"
+          onClick={() => setLayerMenuOpen((p) => !p)}
+        >
+          <Menu size={18} />
+        </button>
+
         {/* Search button */}
         <button
           type="button"
@@ -781,6 +838,85 @@ export default function SearchBar({
 )}
         </button>
       </div>
+
+      <div className="map-quick-actions">
+        <button
+          type="button"
+          className="map-quick-chip"
+          onClick={() => handleQuickNearby("hospital")}
+        >
+          Hospitals
+        </button>
+        <button
+          type="button"
+          className="map-quick-chip"
+          onClick={() => handleQuickNearby("police")}
+        >
+          Police Stations
+        </button>
+        <button
+          type="button"
+          className="map-quick-chip"
+          onClick={() => handleQuickNearby("pharmacy")}
+        >
+          Medical Shops
+        </button>
+      </div>
+
+      {layerMenuOpen && (
+        <div className="map-layer-menu-dropdown">
+          <button
+            type="button"
+            className={`map-layer-menu-item ${layerMenuValue === "vector" ? "active" : ""}`}
+            onClick={() => {
+              onLayerMenuChange?.("vector");
+              setLayerMenuOpen(false);
+            }}
+          >
+            Vector Layers
+          </button>
+          <button
+            type="button"
+            className={`map-layer-menu-item ${layerMenuValue === "raster" ? "active" : ""}`}
+            onClick={() => {
+              onLayerMenuChange?.("raster");
+              setLayerMenuOpen(false);
+            }}
+          >
+            Raster Layers
+          </button>
+          <button
+            type="button"
+            className={`map-layer-menu-item ${layerMenuValue === "disease-layer" ? "active" : ""}`}
+            onClick={() => {
+              onLayerMenuChange?.("disease-layer");
+              setLayerMenuOpen(false);
+            }}
+          >
+            Disease Layer
+          </button>
+          <button
+            type="button"
+            className={`map-layer-menu-item ${layerMenuValue === "disease-heatmap" ? "active" : ""}`}
+            onClick={() => {
+              onLayerMenuChange?.("disease-heatmap");
+              setLayerMenuOpen(false);
+            }}
+          >
+            Disease Heatmap
+          </button>
+          <button
+            type="button"
+            className={`map-layer-menu-item ${layerMenuValue === "disease-trends" ? "active" : ""}`}
+            onClick={() => {
+              onLayerMenuChange?.("disease-trends");
+              setLayerMenuOpen(false);
+            }}
+          >
+            Disease Trends
+          </button>
+        </div>
+      )}
 
       {/* Directions Panel */}
       {hasRoute && steps.length > 0 && (

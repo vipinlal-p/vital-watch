@@ -4,7 +4,7 @@ import L from "leaflet";
 import shp from "shpjs";
 import proj4 from "proj4";
 import "../styles/map-controls.css";
-import "../styles/add-crime-data.css";
+import "../styles/layer-panels.css";
 
 const vectorJsonModules = import.meta.glob("/src/data/**/*.json", {
   eager: true,
@@ -509,14 +509,14 @@ function VectorLayers({
 
   return (
     <div
-      className="add-crime-control"
+      className="layer-panel-control"
       style={containerStyle || { top: "132px", left: "12px", width: "270px" }}
       ref={controlRef}
     >
       {/* Toggle Button */}
       {!hideToggle && (
         <button
-          className="add-crime-btn"
+          className="layer-panel-btn"
           title="Vector Layers"
           onClick={() => setVisibleLocal((v) => !v)}
         >
@@ -526,7 +526,7 @@ function VectorLayers({
 
       {/* Dropdown */}
       {visible && (
-        <div className="add-crime-form raster-panel">
+        <div className="layer-panel-form raster-panel">
           <div className="raster-meta">Source: Local GeoJSON/Shapefile</div>
 
           <div className="raster-list">

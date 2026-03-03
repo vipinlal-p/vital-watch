@@ -159,7 +159,7 @@ export default function LocationMarkerControl() {
   return (
     <div
       className="custom-layer-control"
-      style={{ top: "290px" }}
+      style={{ top: "auto", bottom: "284px", right: "12px" }}
       ref={toggleRef}
     >
       <button

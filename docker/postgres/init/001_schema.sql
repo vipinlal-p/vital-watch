@@ -11,21 +11,3 @@ CREATE TABLE IF NOT EXISTS users (
   dob DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE TABLE IF NOT EXISTS police_stations (
-  station_id SERIAL PRIMARY KEY,
-  district VARCHAR(100),
-  subdivision VARCHAR(100),
-  station_name VARCHAR(100),
-  geom geometry(Point, 4326)
-);
-
-CREATE INDEX IF NOT EXISTS idx_police_geom ON police_stations USING GIST (geom);
-
-CREATE TABLE IF NOT EXISTS crime_records (
-  crime_id SERIAL PRIMARY KEY,
-  station_id INT REFERENCES police_stations(station_id) ON DELETE CASCADE,
-  crime_type VARCHAR(100),
-  year INT,
-  crime_count INT
-);

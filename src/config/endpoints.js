@@ -6,9 +6,5 @@ export const GEOSERVER_WMS_URL =
   import.meta.env.VITE_GEOSERVER_WMS_URL ||
   `${GEOSERVER_BASE_URL}/geoserver/wms`;
 
-export const GEOSERVER_OWS_URL =
-  import.meta.env.VITE_GEOSERVER_OWS_URL ||
-  `${GEOSERVER_BASE_URL}/geoserver/crime_map_app/ows`;
-
 export const apiUrl = (path) =>
   `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;

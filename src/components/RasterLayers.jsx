@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import { GEOSERVER_WMS_URL } from "/src/config/endpoints";
-import "../styles/add-crime-data.css";
+import "../styles/layer-panels.css";
 
 const WMS_URL = GEOSERVER_WMS_URL;
 const GEOSERVER_WORKSPACE =
@@ -298,10 +298,10 @@ export default function RasterLayers({
   };
 
   return (
-    <div className="add-crime-control" ref={controlRef} style={containerStyle}>
+    <div className="layer-panel-control" ref={controlRef} style={containerStyle}>
       {!hideToggle && (
         <button
-          className="add-crime-btn"
+          className="layer-panel-btn"
           title="Raster Layers"
           onClick={() => setIsOpenLocal((value) => !value)}
         >
@@ -310,7 +310,7 @@ export default function RasterLayers({
       )}
 
       {isOpen && (
-        <div className="add-crime-form raster-panel">
+        <div className="layer-panel-form raster-panel">
           <div className="raster-meta">Source: GeoServer WMS</div>
           <div className="raster-meta">Map CRS: {mapCrs}</div>
 

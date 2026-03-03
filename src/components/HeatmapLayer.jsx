@@ -5,7 +5,7 @@ import L from "leaflet";
 import "leaflet.heat";
 import "../styles/map-controls.css";
 import "../styles/heatmap-layer.css";
-import "../styles/add-crime-data.css";
+import "../styles/layer-panels.css";
 import diseaseCsvRaw from "/disease_data/tvm_dummy_data.csv?raw";
 
 const parseCsvRow = (line) => {
@@ -203,13 +203,13 @@ function HeatmapLayer({
 
   return (
     <div
-      className="add-crime-control"
+      className="layer-panel-control"
       style={containerStyle || { top: "168px", left: "12px", width: "270px" }}
       ref={controlRef}
     >
       {!hideToggle && (
         <button
-          className="add-crime-btn"
+          className="layer-panel-btn"
           title="Heatmap Options"
           onClick={() => setDropdownOpen((p) => !p)}
         >
@@ -218,7 +218,7 @@ function HeatmapLayer({
       )}
 
       {visible && (
-        <div className="add-crime-form raster-panel">
+        <div className="layer-panel-form raster-panel">
           <label className="custom-option">
             <input
               type="checkbox"

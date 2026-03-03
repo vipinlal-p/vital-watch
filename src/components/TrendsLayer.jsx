@@ -60,7 +60,11 @@ const parseDiseaseCsv = (raw) => {
   });
 };
 
-function TrendsLayer() {
+function TrendsLayer({
+  hideToggle = false,
+  externallyOpen,
+  onRequestClose,
+}) {
   const map = useMap();
   const [enabled, setEnabled] = useState(false);
   const [data, setData] = useState(null);
@@ -76,6 +80,12 @@ function TrendsLayer() {
 
   // ✅ configurable prediction horizon
   const predictionHorizon = 2; // change this to 2, 3, 5 etc.
+
+  useEffect(() => {
+    if (typeof externallyOpen === "boolean") {
+      setEnabled(externallyOpen);
+    }
+  }, [externallyOpen]);
 
   // ✅ Prevent clicks passing through to map
   useEffect(() => {
@@ -279,29 +289,30 @@ function TrendsLayer() {
 
   return (
     <>
-      {/* 📈 Button */}
-      <div
-        className="custom-layer-control"
-        style={{ top: "340px" }}
-        ref={controlRef}
-      >
-        <button
-          className={`custom-toggle-btn ${enabled ? "active" : ""}`}
-          title="Toggle Disease Trends"
-          onClick={() => setEnabled((p) => !p)}
+      {!hideToggle && (
+        <div
+          className="custom-layer-control"
+          style={{ top: "340px" }}
+          ref={controlRef}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill={enabled ? "#1976d2" : "currentColor"}
+          <button
+            className={`custom-toggle-btn ${enabled ? "active" : ""}`}
+            title="Toggle Disease Trends"
+            onClick={() => setEnabled((p) => !p)}
           >
-            <path d="M3 17h2v2H3v-2zm4-4h2v6H7v-6zm4-4h2v10h-2V9zm4-4h2v14h-2V5zm4 8h2v6h-2v-6z" />
-            <path d="M2 19h20v2H2v-2z" />
-          </svg>
-        </button>
-      </div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill={enabled ? "#1976d2" : "currentColor"}
+            >
+              <path d="M3 17h2v2H3v-2zm4-4h2v6H7v-6zm4-4h2v10h-2V9zm4-4h2v14h-2V5zm4 8h2v6h-2v-6z" />
+              <path d="M2 19h20v2H2v-2z" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* 📊 Modal */}
       {enabled && (
@@ -322,7 +333,13 @@ function TrendsLayer() {
           }}
         >
           <button
-            onClick={() => setEnabled(false)}
+            onClick={() => {
+              if (onRequestClose) {
+                onRequestClose();
+              } else {
+                setEnabled(false);
+              }
+            }}
             style={{
               position: "absolute",
               top: "10px",

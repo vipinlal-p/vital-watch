@@ -3,12 +3,11 @@ import express from "express";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import bodyParser from "body-parser";
 import { db } from "./db.js"; // your Knex connection
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 const SECRET_KEY = process.env.JWT_SECRET || "dev-secret-key";
 const PORT = Number(process.env.PORT || 5000);
@@ -118,57 +117,6 @@ app.post("/api/login", async (req, res) => {
 // ✅ Profile endpoint (protected)
 app.get("/api/profile", authenticateToken, (req, res) => {
   res.json({ id: req.user.id, username: req.user.username });
-});
-
-// ✅ Get all police stations (protected)
-app.get("/api/police-stations", authenticateToken, async (req, res) => {
-  try {
-    const stations = await db("police_stations")
-      .select("station_id", "station_name")
-      .orderBy("station_name", "asc");
-    res.json(stations);
-  } catch (err) {
-    console.error("Error fetching stations:", err);
-    res.status(500).json({ error: "Failed to fetch police stations" });
-  }
-});
-
-// ✅ Add or update crime record (protected)
-app.post("/api/crime-records", authenticateToken, async (req, res) => {
-  const { station_id, crime_type, year, crime_count } = req.body;
-
-  try {
-    if (!station_id || !crime_type || !year || !crime_count) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // Check if a record already exists
-    const existing = await db("crime_records")
-      .where({ station_id, crime_type, year })
-      .first();
-
-    if (existing) {
-      // Update existing record
-      await db("crime_records")
-        .where({ station_id, crime_type, year })
-        .update({ crime_count });
-
-      return res.json({ success: true, message: "Crime record updated" });
-    } else {
-      // Insert new record
-      await db("crime_records").insert({
-        station_id,
-        crime_type,
-        year,
-        crime_count,
-      });
-
-      return res.json({ success: true, message: "Crime record added" });
-    }
-  } catch (err) {
-    console.error("Error saving crime record:", err);
-    res.status(500).json({ error: "Failed to save crime record" });
-  }
 });
 
 // ✅ Start server

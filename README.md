@@ -33,7 +33,7 @@
     -   **Directions:** Get routing between two points.
     -   **Measurement:** Measure distances and areas on the map.
 -   **Data Overlays:**
-    -   Display crime data and trends.
+    -   Display disease data and trends.
     -   Heatmap visualizations.
 -   **User Accounts:** Backend supports user registration and login with JWT authentication.
 
@@ -96,7 +96,6 @@ The following table describes the key environment variables for the frontend:
 | `VITE_API_BASE_URL`              | URL for the backend Express API.                       | `http://localhost:5000`            |
 | `VITE_GEOSERVER_BASE_URL`        | Base URL for the GeoServer instance.                   | `http://localhost:8080`            |
 | `VITE_GEOSERVER_WMS_URL`         | The WMS endpoint for fetching raster tiles.            | `http://localhost:8080/geoserver/wms`|
-| `VITE_GEOSERVER_OWS_URL`         | The OWS endpoint for GeoServer services.               | `.../geoserver/crime_map_app/ows`  |
 | `VITE_GEOSERVER_WORKSPACE`       | The GeoServer workspace where raster layers are stored.| `raster`                           |
 
 ## 🤔 Common Issues

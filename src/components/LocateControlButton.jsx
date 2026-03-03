@@ -7,36 +7,77 @@ import L from "leaflet";
 function LocateControlButton() {
   const map = useMap();
   const [active, setActive] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const btnGroupRef = useRef(null);
 
-  const handleLocate = (e) => {
-    e.stopPropagation(); // extra safety
+  const locateOnce = (options) =>
+    new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+
+  const handleLocate = async (e) => {
+    e.stopPropagation();
 
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        map.setView([latitude, longitude], 14);
-        setActive(true); // ✅ turn blue
-      },
-      () => {
+    if (isLocating) return;
+    setIsLocating(true);
+    try {
+      const fastPos = await locateOnce({
+        enableHighAccuracy: false,
+        timeout: 12000,
+        maximumAge: 600000,
+      });
+      const { latitude, longitude } = fastPos.coords;
+      map.flyTo([latitude, longitude], Math.max(map.getZoom(), 15), {
+        duration: 0.5,
+      });
+      setActive(true);
+      setIsLocating(false);
+      window.dispatchEvent(
+        new CustomEvent("vitalwatch:locate", {
+          detail: { latitude, longitude },
+        })
+      );
+    } catch {
+      try {
+        const precisePos = await locateOnce({
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+        });
+        const { latitude, longitude } = precisePos.coords;
+        map.flyTo([latitude, longitude], Math.max(map.getZoom(), 15), {
+          duration: 0.5,
+        });
+        setActive(true);
+        setIsLocating(false);
+        window.dispatchEvent(
+          new CustomEvent("vitalwatch:locate", {
+            detail: { latitude, longitude },
+          })
+        );
+      } catch (err) {
+        setIsLocating(false);
+        if (err?.code === 1) {
+          alert("Location permission denied. Enable location access in browser/site settings.");
+          return;
+        }
+        if (err?.code === 2) {
+          alert("Location unavailable. Please check GPS/network and try again.");
+          return;
+        }
+        if (err?.code === 3) {
+          alert("Location request timed out. Please try again.");
+          return;
+        }
         alert("Unable to retrieve your location.");
       }
-    );
+    }
   };
-
-  // ✅ Reset to gray if user pans/zooms
-  useEffect(() => {
-    const reset = () => setActive(false);
-    map.on("movestart zoomstart", reset);
-    return () => {
-      map.off("movestart zoomstart", reset);
-    };
-  }, [map]);
 
   // ✅ Block click + scroll propagation
   useEffect(() => {
@@ -47,10 +88,14 @@ function LocateControlButton() {
   }, []);
 
   return (
-    <div className="custom-zoom-group" style={{ top: "190px" }} ref={btnGroupRef}>
+    <div
+      className="custom-zoom-group"
+      style={{ top: "auto", bottom: "184px", right: "12px" }}
+      ref={btnGroupRef}
+    >
       <button
         className={`custom-zoom-btn locate-btn ${active ? "active" : ""}`}
-        title="Locate Me"
+        title={isLocating ? "Locating..." : "Locate Me"}
         onClick={handleLocate}
       >
         <LocateFixed size={22} strokeWidth={2.5} />

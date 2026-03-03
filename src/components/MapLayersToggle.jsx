@@ -6,6 +6,11 @@ import "leaflet/dist/leaflet.css";
 import "../styles/map-controls.css";
 
 export const baseLayers = {
+  roadmap: {
+    name: "Roadmap",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attribution: "&copy; OpenStreetMap contributors & Carto",
+  },
   osm: {
     name: "OpenStreetMap",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -50,6 +55,8 @@ function MapLayersToggle({ activeBase, setActiveBase }) {
   const map = useMap();
   const controlRef = useRef(null);
   const baseLayerRef = useRef(null);
+  const primaryThumbs = ["osm", "satellite", "topo"];
+  const extraThumbs = ["roadmap", "dark"];
 
   // ✅ Ensure base layer is always on map
   useEffect(() => {
@@ -85,47 +92,50 @@ function MapLayersToggle({ activeBase, setActiveBase }) {
   }, []);
 
   return (
-    <div className="custom-layer-control" ref={controlRef}>
-      {/* ✅ Custom toggle button with tooltip */}
-      <button
-        className="custom-toggle-btn"
+    <div
+      className="custom-layer-control"
+      style={{ top: "auto", bottom: "20px", right: "12px" }}
+      ref={controlRef}
+    >
+      <div
+        className={`layer-switcher-bar ${open ? "expanded" : ""}`}
         title="Map Layers"
-        onClick={() => setOpen(!open)}
       >
-        {/* inline SVG icon */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          fill="none"
-          stroke="#333"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          viewBox="0 0 24 24"
-        >
-          <polygon points="12 2 19 7 12 12 5 7 12 2" />
-          <polyline points="19 17 12 22 5 17" />
-          <polyline points="19 12 12 17 5 12" />
-        </svg>
-      </button>
-
-      {/* ✅ Custom dropdown */}
-      {open && (
-        <div className="custom-dropdown">
-          {Object.entries(baseLayers).map(([key, layer]) => (
-            <label key={key} className="custom-option">
-              <input
-                type="radio"
-                name="baseLayer"
-                checked={activeBase === key}
-                onChange={() => setActiveBase(key)}
-              />
-              {layer.name}
-            </label>
+        <div className="layer-thumbs">
+          {primaryThumbs.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={`layer-thumb-btn ${activeBase === key ? "active" : ""}`}
+              onClick={() => setActiveBase(key)}
+              title={baseLayers[key].name}
+            >
+              <span className={`layer-thumb layer-thumb-${key}`} />
+            </button>
           ))}
         </div>
-      )}
+        <div className="layer-thumbs-extra">
+          {extraThumbs.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={`layer-thumb-btn ${activeBase === key ? "active" : ""}`}
+              onClick={() => setActiveBase(key)}
+              title={baseLayers[key].name}
+            >
+              <span className={`layer-thumb layer-thumb-${key}`} />
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="layer-chev-btn"
+          onClick={() => setOpen((v) => !v)}
+          title="More map layers"
+        >
+          {open ? "›" : "‹"}
+        </button>
+      </div>
     </div>
   );
 }
