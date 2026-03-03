@@ -67,13 +67,14 @@ function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [layerPanel, setLayerPanel] = useState(null);
+  const [diseasePanel, setDiseasePanel] = useState(null);
   const [rasterLegendItems, setRasterLegendItems] = useState([]);
   const [vectorLegendItems, setVectorLegendItems] = useState([]);
 
   const [activeBase, setActiveBase] = useState("osm");
 
   const insetSize = width < 640 ? 160 : width < 1024 ? 200 : 260;
-  const sharedLayerPanelStyle = { top: "124px", left: "12px", width: "270px" };
+  const sharedLayerPanelStyle = { top: "168px", left: "12px", width: "270px" };
 
   useEffect(() => {
     if (bounds) {
@@ -111,6 +112,28 @@ function Home() {
           Raster Layers
         </button>
       </div>
+      <div className="layer-split-control" style={{ top: "124px", left: "12px" }}>
+        <button
+          className={`layer-split-btn ${diseasePanel === "disease-layer" ? "active" : ""}`}
+          onClick={() =>
+            setDiseasePanel((prev) =>
+              prev === "disease-layer" ? null : "disease-layer"
+            )
+          }
+        >
+          Disease Layer
+        </button>
+        <button
+          className={`layer-split-btn ${diseasePanel === "disease-heatmap" ? "active" : ""}`}
+          onClick={() =>
+            setDiseasePanel((prev) =>
+              prev === "disease-heatmap" ? null : "disease-heatmap"
+            )
+          }
+        >
+          Disease Heatmap
+        </button>
+      </div>
 
       <MapContainer
         center={position}
@@ -125,8 +148,16 @@ function Home() {
           activeBase={activeBase}
           setActiveBase={setActiveBase}
         />
-        <CrimeLayer />
-        <HeatmapLayer />
+        <CrimeLayer
+          hideToggle={true}
+          externallyOpen={diseasePanel === "disease-layer"}
+          containerStyle={sharedLayerPanelStyle}
+        />
+        <HeatmapLayer
+          hideToggle={true}
+          externallyOpen={diseasePanel === "disease-heatmap"}
+          containerStyle={sharedLayerPanelStyle}
+        />
         <TrendsLayer />
         <RasterLayers
           hideToggle={true}

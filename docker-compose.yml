@@ -59,8 +59,14 @@ services:
       VITE_GEOSERVER_DEM_LAYER: raster:dem
       VITE_GEOSERVER_ASPECT_LAYER: raster:aspect
       VITE_GEOSERVER_POPULATION_LAYER: raster:population_density
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "100"
+      VITE_DOCKER_DEV: "true"
     ports:
       - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - backend
       - geoserver
