@@ -6,9 +6,15 @@ import proj4 from "proj4";
 import "../styles/map-controls.css";
 import "../styles/add-crime-data.css";
 
-const vectorFileModules = import.meta.glob("/src/data/*.{json,geojson}", {
+const vectorJsonModules = import.meta.glob("/src/data/**/*.json", {
   eager: true,
 });
+const vectorGeoJsonRawModules = import.meta.glob("/src/data/**/*.geojson", {
+  eager: true,
+  import: "default",
+  query: "?raw",
+});
+const vectorFileModules = { ...vectorJsonModules, ...vectorGeoJsonRawModules };
 const VECTOR_COLORS = [
   "#9a3412",
   "#6d28d9",
@@ -55,11 +61,236 @@ const isGeoJsonLike = (obj) => {
   return false;
 };
 
+const parseJsonText = (text, fileName = "file") => {
+  try {
+    const normalized = String(text ?? "").replace(/^\uFEFF/, "").trim();
+    return JSON.parse(normalized);
+  } catch (err) {
+    throw new Error(
+      `Invalid JSON in ${fileName}. ${err instanceof Error ? err.message : "Parse failed."}`
+    );
+  }
+};
+
 const toTitle = (id) =>
   id
     .replaceAll("_", " ")
     .replaceAll("-", " ")
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
+
+const normalizeFeatureCollection = (obj) => {
+  if (!obj) return null;
+  if (obj.type === "FeatureCollection") return obj;
+  if (obj.type === "Feature") return { type: "FeatureCollection", features: [obj] };
+  if (Array.isArray(obj)) {
+    if (obj.every((item) => item?.type === "FeatureCollection")) {
+      return {
+        type: "FeatureCollection",
+        features: obj.flatMap((item) => item.features || []),
+      };
+    }
+    if (obj.every((item) => item?.type === "Feature")) {
+      return { type: "FeatureCollection", features: obj };
+    }
+    return obj;
+  }
+  if (obj.type && obj.coordinates) {
+    return {
+      type: "FeatureCollection",
+      features: [{ type: "Feature", properties: {}, geometry: obj }],
+    };
+  }
+  return obj;
+};
+
+const sampleCoords = (fc, limit = 20) => {
+  try {
+    const out = [];
+    const collectFromGeom = (g) => {
+      if (!g || out.length >= limit) return;
+      if (g.type === "GeometryCollection") {
+        (g.geometries || []).forEach(collectFromGeom);
+        return;
+      }
+      const coords = g.coordinates;
+      if (!coords) return;
+      const walk = (node) => {
+        if (!Array.isArray(node) || out.length >= limit) return;
+        if (
+          node.length >= 2 &&
+          typeof node[0] === "number" &&
+          typeof node[1] === "number"
+        ) {
+          out.push([node[0], node[1]]);
+          return;
+        }
+        node.forEach(walk);
+      };
+      walk(coords);
+    };
+
+    if (fc?.type === "FeatureCollection") {
+      (fc.features || []).forEach((f) => collectFromGeom(f.geometry));
+    } else if (fc?.type === "Feature") {
+      collectFromGeom(fc.geometry);
+    } else {
+      collectFromGeom(fc);
+    }
+    return out;
+  } catch {
+    return [];
+  }
+};
+
+const isLonLatCoord = (coord) => {
+  if (!coord || coord.length < 2) return false;
+  const [x, y] = coord;
+  return (
+    Number.isFinite(x) &&
+    Number.isFinite(y) &&
+    Math.abs(x) <= 180 &&
+    Math.abs(y) <= 90
+  );
+};
+
+const isLikelyWebMercatorCoord = (coord) => {
+  if (!coord || coord.length < 2) return false;
+  const [x, y] = coord.map((v) => Math.abs(Number(v)));
+  return (
+    Number.isFinite(x) &&
+    Number.isFinite(y) &&
+    x <= 20037508.35 &&
+    y <= 20037508.35 &&
+    (x > 180 || y > 90)
+  );
+};
+
+const isLikelyUtmCoord = (coord) => {
+  if (!coord || coord.length < 2) return false;
+  const [x, y] = coord.map((v) => Number(v));
+  return (
+    Number.isFinite(x) &&
+    Number.isFinite(y) &&
+    x >= 100000 &&
+    x <= 900000 &&
+    y >= 0 &&
+    y <= 10000000
+  );
+};
+
+const traverseAndTransform = (obj, transformFn) => {
+  if (!obj) return obj;
+  const t = (g) => {
+    if (!g) return g;
+    const { type, coordinates } = g;
+    if (type === "Point") return { ...g, coordinates: transformFn(coordinates) };
+    if (type === "MultiPoint" || type === "LineString") {
+      return { ...g, coordinates: coordinates.map(transformFn) };
+    }
+    if (type === "MultiLineString" || type === "Polygon") {
+      return { ...g, coordinates: coordinates.map((r) => r.map(transformFn)) };
+    }
+    if (type === "MultiPolygon") {
+      return {
+        ...g,
+        coordinates: coordinates.map((p) => p.map((r) => r.map(transformFn))),
+      };
+    }
+    if (type === "GeometryCollection") {
+      return { ...g, geometries: g.geometries.map(t) };
+    }
+    return g;
+  };
+
+  if (obj.type === "FeatureCollection") {
+    return {
+      ...obj,
+      features: obj.features.map((f) => ({ ...f, geometry: t(f.geometry) })),
+    };
+  }
+  if (obj.type === "Feature") {
+    return { ...obj, geometry: t(obj.geometry) };
+  }
+  return t(obj);
+};
+
+const getCrsName = (obj) => {
+  const name = obj?.crs?.properties?.name;
+  return typeof name === "string" ? name.toUpperCase().trim() : null;
+};
+
+const toEpsgCode = (name) => {
+  if (!name) return null;
+  const match =
+    name.match(/EPSG[:/]+(\d{3,6})/i) ||
+    name.match(/URN:OGC:DEF:CRS:EPSG::(\d{3,6})/i) ||
+    name.match(/^(\d{3,6})$/);
+  return match ? `EPSG:${match[1]}` : null;
+};
+
+const ensureUtmProjectionDef = (epsgCode) => {
+  if (!epsgCode || typeof epsgCode !== "string") return;
+  if (proj4.defs(epsgCode)) return;
+  const match = epsgCode.match(/^EPSG:(326|327)(\d{2})$/i);
+  if (!match) return;
+  const hemisphere = match[1];
+  const zone = Number(match[2]);
+  if (!Number.isInteger(zone) || zone < 1 || zone > 60) return;
+  const isSouth = hemisphere === "327";
+  const def = `+proj=utm +zone=${zone} ${isSouth ? "+south " : ""}+datum=WGS84 +units=m +no_defs`;
+  proj4.defs(epsgCode, def);
+};
+
+const inferUtmEpsg = (samples, mapCenter = null) => {
+  if (!samples.length) return null;
+  const utmCount = samples.filter(isLikelyUtmCoord).length;
+  if (utmCount < Math.ceil(samples.length * 0.7)) return null;
+
+  const centerLng =
+    mapCenter && Number.isFinite(mapCenter.lng) ? mapCenter.lng : 77;
+  const centerLat =
+    mapCenter && Number.isFinite(mapCenter.lat) ? mapCenter.lat : 10;
+
+  const zone = Math.min(60, Math.max(1, Math.floor((centerLng + 180) / 6) + 1));
+  const hemisphereCode = centerLat < 0 ? "327" : "326";
+  return `EPSG:${hemisphereCode}${String(zone).padStart(2, "0")}`;
+};
+
+const inferSourceCrs = (obj, mapCenter = null) => {
+  const declared = toEpsgCode(getCrsName(obj));
+  if (declared) return declared;
+
+  const samples = sampleCoords(obj, 20);
+  if (samples.length === 0) return null;
+  const lonLatCount = samples.filter(isLonLatCoord).length;
+  const mercatorCount = samples.filter(isLikelyWebMercatorCoord).length;
+
+  if (lonLatCount === samples.length) return "EPSG:4326";
+  if (mercatorCount >= Math.ceil(samples.length * 0.7)) return "EPSG:3857";
+  return inferUtmEpsg(samples, mapCenter);
+};
+
+const reprojectToWgs84 = (inputGeoJson, mapCenter = null) => {
+  let normalized = normalizeFeatureCollection(inputGeoJson);
+  const sourceCrs = inferSourceCrs(normalized, mapCenter);
+
+  if (sourceCrs && sourceCrs !== "EPSG:4326") {
+    try {
+      ensureUtmProjectionDef(sourceCrs);
+      normalized = traverseAndTransform(normalized, (c) =>
+        proj4(sourceCrs, "EPSG:4326", c)
+      );
+      return { data: normalized, sourceCrs, reprojected: true };
+    } catch (error) {
+      console.warn(
+        `Could not reproject from ${sourceCrs}. Rendering without transform.`,
+        error
+      );
+    }
+  }
+
+  return { data: normalized, sourceCrs, reprojected: false };
+};
 
 function VectorLayers({
   hideToggle = false,
@@ -80,21 +311,31 @@ function VectorLayers({
     () =>
       Object.entries(vectorFileModules)
         .map(([filePath, mod], idx) => {
-          const data = mod?.default ?? mod;
+          const modValue = mod?.default ?? mod;
+          const data =
+            typeof modValue === "string"
+              ? parseJsonText(modValue, filePath)
+              : modValue;
           if (!isGeoJsonLike(data)) return null;
           const base = filePath.split("/").pop() || "";
           const id = base.replace(/\.(json|geojson)$/i, "");
+          const reprojection = reprojectToWgs84(data, map.getCenter());
+          if (reprojection.reprojected) {
+            console.info(
+              `Reprojected local layer ${id}: ${reprojection.sourceCrs} -> EPSG:4326`
+            );
+          }
           return {
             id,
             name: toTitle(id),
-            data,
+            data: reprojection.data,
             color: VECTOR_COLORS[idx % VECTOR_COLORS.length],
             isHospital: id.toLowerCase().includes("hospital"),
           };
         })
         .filter(Boolean)
         .sort((a, b) => a.name.localeCompare(b.name)),
-    []
+    [map]
   );
 
   useEffect(() => {
@@ -153,7 +394,7 @@ function VectorLayers({
         }
       } else if (name.endsWith(".geojson") || name.endsWith(".json")) {
         const text = await file.text();
-        const parsed = JSON.parse(text);
+        const parsed = parseJsonText(text, file.name);
         // normalize single Feature to FeatureCollection
         if (parsed && parsed.type === "Feature") {
           geojson = { type: "FeatureCollection", features: [parsed] };
@@ -166,156 +407,13 @@ function VectorLayers({
         return;
       }
 
-      // normalize to FeatureCollection
-      const normalizeFeatureCollection = (obj) => {
-        if (!obj) return null;
-        if (obj.type === "FeatureCollection") return obj;
-        if (obj.type === "Feature") return { type: "FeatureCollection", features: [obj] };
-        // sometimes we get arrays of FeatureCollections or Features
-        if (Array.isArray(obj)) {
-          if (obj.every((item) => item?.type === "FeatureCollection")) {
-            return {
-              type: "FeatureCollection",
-              features: obj.flatMap((item) => item.features || []),
-            };
-          }
-          if (obj.every((item) => item?.type === "Feature")) {
-            return { type: "FeatureCollection", features: obj };
-          }
-          return obj;
-        }
-        // if it's a plain geometry
-        if (obj.type && obj.coordinates) return { type: "FeatureCollection", features: [{ type: "Feature", properties: {}, geometry: obj }] };
-        return obj;
-      };
-
-      let normalized = normalizeFeatureCollection(geojson);
-
-      // helper: sample coordinates to infer source CRS when none is provided
-      const sampleCoords = (fc, limit = 20) => {
-        try {
-          const out = [];
-          const collectFromGeom = (g) => {
-            if (!g || out.length >= limit) return;
-            if (g.type === "GeometryCollection") {
-              (g.geometries || []).forEach(collectFromGeom);
-              return;
-            }
-            const coords = g.coordinates;
-            if (!coords) return;
-            const walk = (node) => {
-              if (!Array.isArray(node) || out.length >= limit) return;
-              if (
-                node.length >= 2 &&
-                typeof node[0] === "number" &&
-                typeof node[1] === "number"
-              ) {
-                out.push([node[0], node[1]]);
-                return;
-              }
-              node.forEach(walk);
-            };
-            walk(coords);
-          };
-
-          if (fc?.type === "FeatureCollection") {
-            (fc.features || []).forEach((f) => collectFromGeom(f.geometry));
-          } else if (fc?.type === "Feature") {
-            collectFromGeom(fc.geometry);
-          } else {
-            collectFromGeom(fc);
-          }
-          return out;
-        } catch {
-          return [];
-        }
-      };
-
-      const isLonLatCoord = (coord) => {
-        if (!coord || coord.length < 2) return false;
-        const [x, y] = coord;
-        return (
-          Number.isFinite(x) &&
-          Number.isFinite(y) &&
-          Math.abs(x) <= 180 &&
-          Math.abs(y) <= 90
+      const reprojection = reprojectToWgs84(geojson, map.getCenter());
+      let normalized = reprojection.data;
+      if (reprojection.reprojected) {
+        console.info(
+          `Reprojected uploaded layer ${reprojection.sourceCrs} -> EPSG:4326`
         );
-      };
-
-      const isLikelyWebMercatorCoord = (coord) => {
-        if (!coord || coord.length < 2) return false;
-        const [x, y] = coord.map((v) => Math.abs(Number(v)));
-        // EPSG:3857 bounds in meters
-        return (
-          Number.isFinite(x) &&
-          Number.isFinite(y) &&
-          x <= 20037508.35 &&
-          y <= 20037508.35 &&
-          (x > 180 || y > 90)
-        );
-      };
-
-      const traverseAndTransform = (obj, transformFn) => {
-        if (!obj) return obj;
-        const t = (g) => {
-          if (!g) return g;
-          const { type, coordinates } = g;
-          if (type === "Point") return { ...g, coordinates: transformFn(coordinates) };
-          if (type === "MultiPoint" || type === "LineString") return { ...g, coordinates: coordinates.map(transformFn) };
-          if (type === "MultiLineString" || type === "Polygon") return { ...g, coordinates: coordinates.map((r) => r.map(transformFn)) };
-          if (type === "MultiPolygon") return { ...g, coordinates: coordinates.map((p) => p.map((r) => r.map(transformFn))) };
-          if (type === "GeometryCollection") return { ...g, geometries: g.geometries.map(t) };
-          return g;
-        };
-
-        if (obj.type === "FeatureCollection") {
-          return { ...obj, features: obj.features.map((f) => ({ ...f, geometry: t(f.geometry) })) };
-        }
-        if (obj.type === "Feature") {
-          return { ...obj, geometry: t(obj.geometry) };
-        }
-        return t(obj);
-      };
-
-      const getCrsName = (obj) => {
-        const name = obj?.crs?.properties?.name;
-        return typeof name === "string" ? name.toUpperCase().trim() : null;
-      };
-
-      const toEpsgCode = (name) => {
-        if (!name) return null;
-        const match = name.match(/EPSG[:/](\d{3,6})/i) || name.match(/^(\d{3,6})$/);
-        return match ? `EPSG:${match[1]}` : null;
-      };
-
-      const inferSourceCrs = (obj) => {
-        const declared = toEpsgCode(getCrsName(obj));
-        if (declared) return declared;
-
-        const samples = sampleCoords(obj, 20);
-        if (samples.length === 0) return null;
-        const lonLatCount = samples.filter(isLonLatCoord).length;
-        const mercatorCount = samples.filter(isLikelyWebMercatorCoord).length;
-
-        if (lonLatCount === samples.length) return "EPSG:4326";
-        if (mercatorCount >= Math.ceil(samples.length * 0.7)) return "EPSG:3857";
-        return null;
-      };
-
-      const sourceCrs = inferSourceCrs(normalized);
-      if (sourceCrs && sourceCrs !== "EPSG:4326") {
-        try {
-          normalized = traverseAndTransform(normalized, (c) =>
-            proj4(sourceCrs, "EPSG:4326", c)
-          );
-          console.info(`Reprojected uploaded layer ${sourceCrs} -> EPSG:4326`);
-        } catch (reprojectErr) {
-          console.warn(
-            `Could not reproject from ${sourceCrs}. Rendering without transform.`,
-            reprojectErr
-          );
-        }
-      } else if (!sourceCrs) {
+      } else if (!reprojection.sourceCrs) {
         console.warn(
           "Could not infer upload CRS. If layer appears off-map, provide EPSG metadata."
         );
@@ -350,6 +448,7 @@ function VectorLayers({
       event.target.value = "";
     } catch (err) {
       console.error("Error loading file:", err);
+      alert(err instanceof Error ? err.message : "Error loading file.");
     }
   };
 
