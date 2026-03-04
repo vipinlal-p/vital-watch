@@ -27,8 +27,17 @@ export default function FloatingAuthControl({
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [role, setRole] = useState("user");
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordUpdating, setPasswordUpdating] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const wrapperRef = useRef(null);
   const layersRef = useRef(null);
@@ -62,6 +71,7 @@ export default function FloatingAuthControl({
           setUsername(data.username || "");
           setFirstName(data.firstName || "");
           setLastName(data.lastName || "");
+          setRole(data.role || "user");
         } else {
           localStorage.removeItem("token");
         }
@@ -103,6 +113,7 @@ export default function FloatingAuthControl({
       setUsername(data.username || "");
       setFirstName(data.firstName || "");
       setLastName(data.lastName || "");
+      setRole(data.role || "user");
       setFormData({ username: "", password: "" });
       setError("");
       setOpen(false);
@@ -120,9 +131,65 @@ export default function FloatingAuthControl({
     setUsername("");
     setFirstName("");
     setLastName("");
+    setRole("user");
+    setShowPasswordForm(false);
+    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setPasswordError("");
     setOpen(false);
     setToast({ show: true, message: "Logged out successfully!", type: "success" });
     setTimeout(() => setToast({ show: false, message: "", type: "" }), 2500);
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPasswordError("");
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError("Please fill all password fields");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New password and confirm password do not match");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setPasswordError("You are not logged in");
+      return;
+    }
+
+    setPasswordUpdating(true);
+    try {
+      const res = await fetch(apiUrl("/api/change-password"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(passwordForm),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordError(data.error || "Unable to change password");
+        return;
+      }
+
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordForm(false);
+      setToast({ show: true, message: "Password changed successfully", type: "success" });
+      setTimeout(() => setToast({ show: false, message: "", type: "" }), 2500);
+    } catch (err) {
+      console.error("Change password error:", err);
+      setPasswordError("Server error. Please try again.");
+    } finally {
+      setPasswordUpdating(false);
+    }
   };
 
   return (
@@ -304,6 +371,46 @@ export default function FloatingAuthControl({
                   }}
                 >
                   <button
+                    onClick={() => {
+                      setShowPasswordForm((prev) => !prev);
+                      setPasswordError("");
+                    }}
+                    style={{
+                      width: "100%",
+                      border: "none",
+                      background: showPasswordForm ? "#eef2ff" : "transparent",
+                      padding: "12px 10px",
+                      fontSize: "13px",
+                      color: "#111827",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #d1d5db",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {showPasswordForm ? "Cancel Password Change" : "Change Password"}
+                  </button>
+                  {role === "admin" ? (
+                    <button
+                      onClick={() => {
+                        navigate("/admin");
+                        setOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        border: "none",
+                        background: "#eef2ff",
+                        padding: "12px 10px",
+                        fontSize: "13px",
+                        color: "#1d4ed8",
+                        cursor: "pointer",
+                        borderBottom: "1px solid #d1d5db",
+                        fontWeight: 700,
+                      }}
+                    >
+                      Admin Panel
+                    </button>
+                  ) : null}
+                  <button
                     onClick={handleLogout}
                     style={{
                       width: "100%",
@@ -318,6 +425,86 @@ export default function FloatingAuthControl({
                     Sign out
                   </button>
                 </div>
+
+                {showPasswordForm ? (
+                  <form
+                    onSubmit={handleChangePassword}
+                    style={{
+                      marginTop: "10px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "12px",
+                      background: "#ffffff",
+                      padding: "10px",
+                      display: "grid",
+                      gap: "8px",
+                    }}
+                  >
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      value={passwordForm.currentPassword}
+                      onChange={handlePasswordInputChange}
+                      placeholder="Current password"
+                      style={{
+                        width: "100%",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        padding: "8px 10px",
+                        fontSize: "13px",
+                      }}
+                    />
+                    <input
+                      type="password"
+                      name="newPassword"
+                      value={passwordForm.newPassword}
+                      onChange={handlePasswordInputChange}
+                      placeholder="New password"
+                      style={{
+                        width: "100%",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        padding: "8px 10px",
+                        fontSize: "13px",
+                      }}
+                    />
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={passwordForm.confirmPassword}
+                      onChange={handlePasswordInputChange}
+                      placeholder="Confirm new password"
+                      style={{
+                        width: "100%",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        padding: "8px 10px",
+                        fontSize: "13px",
+                      }}
+                    />
+                    {passwordError ? (
+                      <div style={{ color: "#b91c1c", fontSize: "12px", textAlign: "center" }}>
+                        {passwordError}
+                      </div>
+                    ) : null}
+                    <button
+                      type="submit"
+                      disabled={passwordUpdating}
+                      style={{
+                        width: "100%",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "9px 12px",
+                        background: passwordUpdating ? "#9ca3af" : "#2563eb",
+                        color: "#ffffff",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: passwordUpdating ? "not-allowed" : "pointer",
+                      }}
+                    >
+                      {passwordUpdating ? "Updating..." : "Update Password"}
+                    </button>
+                  </form>
+                ) : null}
               </div>
             ) : (
               <div>

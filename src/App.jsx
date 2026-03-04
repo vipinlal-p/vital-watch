@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home";
 import Help from "./pages/Help";
+import Admin from "./pages/Admin";
 
 function ScrollToTop() {
   const location = useLocation();
@@ -22,6 +23,7 @@ function AppRoutes() {
 
   let page = <Home />;
   if (path === "/help") page = <Help />;
+  if (path === "/admin") page = <Admin />;
 
   return (
     <main className="flex-grow" key={location.pathname}>

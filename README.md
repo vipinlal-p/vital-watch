@@ -35,7 +35,12 @@
 -   **Data Overlays:**
     -   Display disease data and trends.
     -   Heatmap visualizations.
--   **User Accounts:** Backend supports user registration and login with JWT authentication.
+-   **User Accounts & Admin Controls:**
+    -   Default seeded admin account on fresh DB initialization.
+    -   Admin-managed user creation and role management.
+    -   User self-service password change after login.
+    -   User lifecycle actions: soft delete, restore, and permanent delete.
+    -   Audit trail for user add/remove actions.
 
 ## 🛠️ Tech Stack
 
@@ -69,6 +74,32 @@ This project is designed to be run with Docker. Ensure you have Docker and Docke
     *   **Backend API:** `http://localhost:5000`
     *   **GeoServer:** [http://localhost:8080/geoserver](http://localhost:8080/geoserver)
     *   **Database (PostGIS):** Connect on port `5432`
+
+### 🔐 Default Admin Account
+
+On a fresh database initialization, a default admin user is seeded automatically:
+
+- **Username:** `admin`
+- **Password:** `Admin@123`
+- **Role:** `admin`
+
+Use this account to sign in and create additional users from the Admin Panel (`/admin`).
+
+> **Important:** Change or replace this default admin credential immediately in production deployments.
+>
+> **Note:** Database init scripts run only on first initialization of a fresh Postgres volume.  
+> If you already have existing DB data, recreate the DB volume to re-run seed scripts.
+
+### 👤 User Management Flow
+
+- Users can be created only by admins from the Admin Panel.
+- Logged-in users can change their own password from the profile dropdown.
+- Admins can:
+  - Soft delete users (account disabled, row retained)
+  - Restore soft-deleted users
+  - Permanently delete users
+- Soft-deleted users cannot log in until restored.
+- Add/remove actions are stored in the user audit log visible in Admin Panel.
 
 ### Useful Docker Commands
 

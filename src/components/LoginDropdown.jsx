@@ -1,7 +1,6 @@
 // src/components/LoginDropdown.jsx
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import RegisterModal from "./RegisterModal";
 import Toast from "./Toast";
 import { apiUrl } from "/src/config/endpoints";
 
@@ -9,7 +8,6 @@ export default function LoginDropdown({ onLoginSuccess }) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
-  const [showRegister, setShowRegister] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
   const dropdownRef = useRef(null);
 
@@ -112,23 +110,9 @@ export default function LoginDropdown({ onLoginSuccess }) {
               </button>
             </form>
 
-            <div className="text-sm text-center mt-3">
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  setShowRegister(true);
-                }}
-                className="text-blue-600 hover:underline"
-              >
-                New user? Register here
-              </button>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Register Modal */}
-      <RegisterModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
 
       {/* ✅ Toast Notification */}
       <Toast message={toast.message} type={toast.type} show={toast.show} />
