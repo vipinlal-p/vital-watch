@@ -297,6 +297,7 @@ function VectorLayers({
   externallyOpen,
   containerStyle,
   onLegendChange,
+  onRequestClose,
 }) {
   const map = useMap();
   const [visibleLocal, setVisibleLocal] = useState(false);
@@ -483,6 +484,13 @@ function VectorLayers({
 
   const visible =
     typeof externallyOpen === "boolean" ? externallyOpen : visibleLocal;
+  const closePanel = () => {
+    if (onRequestClose) {
+      onRequestClose();
+      return;
+    }
+    setVisibleLocal(false);
+  };
 
   useEffect(() => {
     const legendItems = [
@@ -527,6 +535,17 @@ function VectorLayers({
       {/* Dropdown */}
       {visible && (
         <div className="layer-panel-form raster-panel">
+          <div className="layer-panel-header">
+            <div className="layer-panel-title">Vector Layers</div>
+            <button
+              type="button"
+              className="layer-panel-close-btn"
+              title="Close"
+              onClick={closePanel}
+            >
+              ×
+            </button>
+          </div>
           <div className="raster-meta">Source: Local GeoJSON/Shapefile</div>
 
           <div className="raster-list">

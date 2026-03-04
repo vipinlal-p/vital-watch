@@ -64,7 +64,7 @@ export default function LoginDropdown({ onLoginSuccess }) {
       {/* Login Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="px-3 py-1.5 text-sm bg-white text-gray-800 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+        className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg border border-blue-700 hover:bg-blue-700 transition"
       >
         Login
       </button>

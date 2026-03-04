@@ -18,6 +18,7 @@ import DiseaseLayer from "../components/DiseaseLayer";
 import HeatmapLayer from "../components/HeatmapLayer";
 import TrendsLayer from "../components/TrendsLayer";
 import RasterLayers from "../components/RasterLayers";
+import FloatingAuthControl from "../components/FloatingAuthControl";
 
 const MainMap = React.memo(
   ({ setBounds, activeBase, setActiveBase }) => {
@@ -55,13 +56,20 @@ function Home() {
   const [userLocation, setUserLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [nearbyRequest, setNearbyRequest] = useState(null);
+  const [nearbySearchText, setNearbySearchText] = useState("");
+  const [nearbyActive, setNearbyActive] = useState(false);
+  const [nearbyClearAt, setNearbyClearAt] = useState(0);
   const [activeLayerMenu, setActiveLayerMenu] = useState(null);
   const [rasterLegendItems, setRasterLegendItems] = useState([]);
   const [vectorLegendItems, setVectorLegendItems] = useState([]);
 
   const [activeBase, setActiveBase] = useState("osm");
 
-  const sharedLayerPanelStyle = { top: "112px", left: "12px", width: "270px" };
+  const sharedLayerPanelStyle = {
+    top: "calc(112px + var(--navbar-offset))",
+    left: "12px",
+    width: "270px",
+  };
 
   const hasLegendItems =
     rasterLegendItems.length > 0 || vectorLegendItems.length > 0;
@@ -70,7 +78,7 @@ function Home() {
   return (
     <div
       className="w-full relative z-0"
-      style={{ height: "calc(100vh - 60px)" }} // adjust for Navbar
+      style={{ height: "100vh" }}
     >
       <MapContainer
         center={position}
@@ -88,11 +96,13 @@ function Home() {
           hideToggle={true}
           externallyOpen={activeLayerMenu === "disease-layer"}
           containerStyle={sharedLayerPanelStyle}
+          onRequestClose={() => setActiveLayerMenu(null)}
         />
         <HeatmapLayer
           hideToggle={true}
           externallyOpen={activeLayerMenu === "disease-heatmap"}
           containerStyle={sharedLayerPanelStyle}
+          onRequestClose={() => setActiveLayerMenu(null)}
         />
         <TrendsLayer
           hideToggle={true}
@@ -104,24 +114,37 @@ function Home() {
           externallyOpen={activeLayerMenu === "raster"}
           containerStyle={sharedLayerPanelStyle}
           onLegendChange={setRasterLegendItems}
+          onRequestClose={() => setActiveLayerMenu(null)}
         />
         <SearchBar
           onLocationChange={setUserLocation}
           onDestinationChange={setDestination}
-          onNearbyRequest={(category) =>
-            setNearbyRequest({ category, requestedAt: Date.now() })
-          }
-          layerMenuValue={activeLayerMenu}
-          onLayerMenuChange={(key) =>
-            setActiveLayerMenu((prev) => (prev === key ? null : key))
-          }
+          onNearbyRequest={(category) => {
+            setNearbyActive(true);
+            setNearbyRequest({ category, requestedAt: Date.now() });
+          }}
+          onClearNearby={() => {
+            setNearbyActive(false);
+            setNearbySearchText("");
+            setNearbyClearAt(Date.now());
+          }}
+          nearbyActive={nearbyActive}
+          externalQueryText={nearbySearchText}
         />
 
         <NearbyPlacesControl
           userLocation={userLocation}
           destination={destination}
           nearbyRequest={nearbyRequest}
-          hideToggle={true}
+          clearRequestAt={nearbyClearAt}
+          onCategorySelected={(label) => {
+            setNearbySearchText(label);
+            setNearbyActive(Boolean(label));
+          }}
+          onNearbyCleared={() => {
+            setNearbyActive(false);
+            setNearbySearchText("");
+          }}
         />
         <CurrentLocationMarker />
         <VectorLayers
@@ -129,6 +152,7 @@ function Home() {
           externallyOpen={activeLayerMenu === "vector"}
           containerStyle={sharedLayerPanelStyle}
           onLegendChange={setVectorLegendItems}
+          onRequestClose={() => setActiveLayerMenu(null)}
         />
         <MeasureControl />
         <LocationMarkerControl />
@@ -172,6 +196,57 @@ function Home() {
           )}
         </div>
       )}
+
+      <div
+        style={{
+          position: "fixed",
+          left: "50%",
+          bottom: "14px",
+          transform: "translateX(-50%)",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          background: "transparent",
+          borderRadius: "24px",
+          padding: "6px 14px",
+          boxShadow: "none",
+          zIndex: 3000,
+          pointerEvents: "none",
+        }}
+      >
+        <img
+          src="/logo.png"
+          alt="Vital Watch logo"
+          style={{
+            width: "28px",
+            height: "28px",
+            filter:
+              "drop-shadow(0.3px 0 0 #fff) drop-shadow(-0.3px 0 0 #fff) drop-shadow(0 0.3px 0 #fff) drop-shadow(0 -0.3px 0 #fff) drop-shadow(0.3px 0.3px 0 #fff) drop-shadow(-0.3px -0.3px 0 #fff) drop-shadow(0.3px -0.3px 0 #fff) drop-shadow(-0.3px 0.3px 0 #fff)",
+          }}
+        />
+        <span
+          style={{
+            color: "#5f6368",
+            fontSize: "24px",
+            fontWeight: 700,
+            lineHeight: 1,
+            letterSpacing: "-1.2px",
+            fontFamily: "Arial, Helvetica, sans-serif",
+            WebkitTextStroke: "2px #ffffff",
+            paintOrder: "stroke fill",
+            textShadow: "none",
+          }}
+        >
+          Vital Watch
+        </span>
+      </div>
+
+      <FloatingAuthControl
+        layerMenuValue={activeLayerMenu}
+        onLayerMenuChange={(key) =>
+          setActiveLayerMenu((prev) => (prev === key ? null : key))
+        }
+      />
     </div>
   );
 }

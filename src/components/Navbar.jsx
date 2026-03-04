@@ -61,8 +61,23 @@ function Navbar() {
 
   return (
     <>
-      <nav className="relative z-[5000] bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white py-2 px-4">
-        <div className="w-full flex justify-between items-center">
+      <nav
+        className="text-[#202124] px-4"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "60px",
+          zIndex: 99999,
+          background: "transparent",
+          backdropFilter: "none",
+          WebkitBackdropFilter: "none",
+          borderBottom: "none",
+          display: "block",
+        }}
+      >
+        <div className="w-full h-full flex justify-between items-center">
           {/* Left side - Logo + Title */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center text-xl font-bold">
@@ -70,7 +85,7 @@ function Navbar() {
 {/* Title + Subtitle stacked */}
 <div className="flex flex-col leading-tight">
   <span className="text-xl font-bold">VitalWatch</span>
-  <p className="text-xs italic text-gray-300">
+  <p className="text-xs italic text-[#202124]">
     Smart health monitoring made simple
   </p>
 </div>
@@ -80,28 +95,14 @@ function Navbar() {
 
           {/* Right side - Links + Login/Logout */}
           <div className="flex items-center gap-4">
-            <Link to="/" className="hover:text-red-300">
-              Home
-            </Link>
-            <Link to="/services" className="hover:text-red-300">
-              Services
-            </Link>
-            <Link to="/contact" className="hover:text-red-300">
-              Contact
-            </Link>
-            <Link to="/news" className="hover:text-red-300">
-              News
-            </Link>
-
             {/* ✅ Login / Logout */}
             {!isAuthenticated ? (
               <LoginDropdown onLoginSuccess={handleLoginSuccess} />
             ) : (
               <div className="flex items-center gap-3">
-                <span className="text-sm">👋 {username}</span>
                 <button
                   onClick={handleLogout}
-                  className="px-3 py-1.5 text-sm bg-white text-gray-800 rounded-lg border border-gray-300 hover:bg-gray-100 transition"
+                  className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-lg border border-red-700 hover:bg-red-700 transition"
                 >
                   Logout
                 </button>

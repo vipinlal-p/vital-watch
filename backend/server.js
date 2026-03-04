@@ -107,7 +107,7 @@ app.post("/api/login", async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ token, username: user.username });
+    res.json({ token, username: user.username, firstName: user.first_name || "", lastName: user.last_name || "" });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error during login" });
@@ -115,8 +115,25 @@ app.post("/api/login", async (req, res) => {
 });
 
 // ✅ Profile endpoint (protected)
-app.get("/api/profile", authenticateToken, (req, res) => {
-  res.json({ id: req.user.id, username: req.user.username });
+app.get("/api/profile", authenticateToken, async (req, res) => {
+  try {
+    const user = await db("users")
+      .select("id", "username", "first_name", "last_name")
+      .where({ id: req.user.id })
+      .first();
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      firstName: user.first_name || "",
+      lastName: user.last_name || "",
+    });
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(500).json({ error: "Server error while fetching profile" });
+  }
 });
 
 // ✅ Start server

@@ -1,6 +1,6 @@
 .map-search-wrapper {
   position: absolute;
-  top: 12px;
+  top: calc(12px + var(--navbar-offset));
   left: 12px;
   z-index: 1500;
   width: 470px;
@@ -52,10 +52,17 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #777;
+  color: #5f6368;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+}
+
+.map-search-clear:hover {
+  background: #f3f4f6;
 }
 
 /* Suggestions dropdown */
@@ -159,58 +166,6 @@
   justify-content: center;
   margin-right: 6px;
   color: #666;
-}
-
-.map-layer-menu-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 6px;
-  color: #666;
-}
-
-.map-layer-menu-btn:hover {
-  color: #111;
-}
-
-.map-layer-menu-dropdown {
-  position: absolute;
-  top: 54px;
-  left: 0;
-  width: 250px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
-  border: 1px solid #e8eaed;
-  padding: 8px;
-  z-index: 3200;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.map-layer-menu-item {
-  border: none;
-  background: #fff;
-  text-align: left;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #202124;
-  cursor: pointer;
-}
-
-.map-layer-menu-item:hover {
-  background: #f1f3f4;
-}
-
-.map-layer-menu-item.active {
-  background: #e8f0fe;
-  color: #1a73e8;
 }
 
 .map-search-icon-btn:hover {

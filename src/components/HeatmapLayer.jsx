@@ -67,6 +67,7 @@ function HeatmapLayer({
   hideToggle = false,
   externallyOpen,
   containerStyle,
+  onRequestClose,
 }) {
   const map = useMap();
   const [enabled, setEnabled] = useState(true);
@@ -91,6 +92,13 @@ function HeatmapLayer({
   }, [rows]);
   const visible =
     typeof externallyOpen === "boolean" ? externallyOpen : dropdownOpen;
+  const closePanel = () => {
+    if (onRequestClose) {
+      onRequestClose();
+      return;
+    }
+    setDropdownOpen(false);
+  };
 
   // ✅ Prevent clicks on control from bubbling to map
   useEffect(() => {
@@ -219,6 +227,17 @@ function HeatmapLayer({
 
       {visible && (
         <div className="layer-panel-form raster-panel">
+          <div className="layer-panel-header">
+            <div className="layer-panel-title">Disease Heatmap</div>
+            <button
+              type="button"
+              className="layer-panel-close-btn"
+              title="Close"
+              onClick={closePanel}
+            >
+              ×
+            </button>
+          </div>
           <label className="custom-option">
             <input
               type="checkbox"

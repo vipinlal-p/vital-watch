@@ -90,6 +90,7 @@ export default function RasterLayers({
   externallyOpen,
   containerStyle,
   onLegendChange,
+  onRequestClose,
 }) {
   const map = useMap();
   const controlRef = useRef(null);
@@ -281,6 +282,13 @@ export default function RasterLayers({
 
   const isOpen =
     typeof externallyOpen === "boolean" ? externallyOpen : isOpenLocal;
+  const closePanel = () => {
+    if (onRequestClose) {
+      onRequestClose();
+      return;
+    }
+    setIsOpenLocal(false);
+  };
 
   const toggleLayer = (layerName) => {
     setCatalogStatus((prev) => ({ ...prev, error: "" }));
@@ -311,6 +319,17 @@ export default function RasterLayers({
 
       {isOpen && (
         <div className="layer-panel-form raster-panel">
+          <div className="layer-panel-header">
+            <div className="layer-panel-title">Raster Layers</div>
+            <button
+              type="button"
+              className="layer-panel-close-btn"
+              title="Close"
+              onClick={closePanel}
+            >
+              ×
+            </button>
+          </div>
           <div className="raster-meta">Source: GeoServer WMS</div>
           <div className="raster-meta">Map CRS: {mapCrs}</div>
 

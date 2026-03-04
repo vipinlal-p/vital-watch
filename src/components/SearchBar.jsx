@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import {
-  Menu,
   Search,
   X,
   MapPin,
@@ -21,9 +20,10 @@ export default function SearchBar({
   placeholder = "Search location...",
   onLocationChange,
   onDestinationChange,
-  layerMenuValue = null,
-  onLayerMenuChange,
   onNearbyRequest,
+  onClearNearby,
+  nearbyActive = false,
+  externalQueryText = "",
 }) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
@@ -39,7 +39,6 @@ export default function SearchBar({
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [navHeading, setNavHeading] = useState(0);
   const [nextStepDistance, setNextStepDistance] = useState(null);
-  const [layerMenuOpen, setLayerMenuOpen] = useState(false);
 
   const map = useMap();
   const markerRef = useRef(null);
@@ -56,6 +55,18 @@ export default function SearchBar({
   useEffect(() => {
     activeStepIndexRef.current = activeStepIndex;
   }, [activeStepIndex]);
+
+  useEffect(() => {
+    // Sync from external text only when parent value changes (e.g., nearby chip),
+    // not on every local keystroke.
+    if (typeof externalQueryText !== "string") return;
+    setQuery((prev) => {
+      if (prev === externalQueryText) return prev;
+      return externalQueryText;
+    });
+    setSuggestions([]);
+    setIsFocused(false);
+  }, [externalQueryText]);
 
   const alertWithCooldown = (key, message, cooldownMs = 10000) => {
     const now = Date.now();
@@ -107,17 +118,6 @@ export default function SearchBar({
       el.removeEventListener("dblclick", onDblClick);
       el.removeEventListener("touchmove", onTouchMove);
     };
-  }, []);
-
-  useEffect(() => {
-    const onDocClick = (e) => {
-      if (!controlRef.current) return;
-      if (!controlRef.current.contains(e.target)) {
-        setLayerMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
   // -----------------------------
@@ -251,6 +251,30 @@ export default function SearchBar({
     const useText = overrideText ?? query ?? "";
     if (!useText.trim()) return;
 
+    // Fast path: if input is coordinates, skip network lookup and go directly.
+    const coordMatch = useText
+      .trim()
+      .match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lon = parseFloat(coordMatch[2]);
+      if (
+        Number.isFinite(lat) &&
+        Number.isFinite(lon) &&
+        lat >= -90 &&
+        lat <= 90 &&
+        lon >= -180 &&
+        lon <= 180
+      ) {
+        handleSelect({
+          lat: String(lat),
+          lon: String(lon),
+          display_name: `${lat.toFixed(6)}, ${lon.toFixed(6)}`,
+        });
+        return;
+      }
+    }
+
     // If suggestions exist and there's NO overrideText -> choose the first suggestion (fast)
     if (!overrideText && suggestions.length > 0) {
       handleSelect(suggestions[0]);
@@ -259,10 +283,15 @@ export default function SearchBar({
 
     // Otherwise, fetch 1 result from Nominatim for the supplied text
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(
         useText
       )}&addressdetails=1&limit=1`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      if (!res.ok) throw new Error(`Search HTTP ${res.status}`);
       const data = await res.json();
       if (data?.length > 0) {
         handleSelect(data[0]);
@@ -271,7 +300,7 @@ export default function SearchBar({
       }
     } catch (err) {
       console.error("Search error:", err);
-      alert("Search failed. Check console.");
+      alert("Search failed. Check your internet and try again.");
     }
   };
 
@@ -312,6 +341,12 @@ export default function SearchBar({
   };
 
   const handleQuickNearby = (category) => {
+    const labelMap = {
+      hospital: "Hospitals",
+      police: "Police Stations",
+      pharmacy: "Medical Shops",
+    };
+    setQuery(labelMap[category] || category);
     setIsFocused(false);
     onNearbyRequest?.(category);
   };
@@ -342,7 +377,9 @@ export default function SearchBar({
     setQuery("");
     setSuggestions([]);
     setDestination(null);
+    setIsFocused(false);
     if (onDestinationChange) onDestinationChange(null);
+    onClearNearby?.();
     if (markerRef.current) {
       try {
         map.removeLayer(markerRef.current);
@@ -695,15 +732,6 @@ export default function SearchBar({
     <div className="map-search-wrapper" ref={controlRef}>
       <div className="map-search-row">
       <form className="map-search-bar" onSubmit={handleSubmit}>
-        <button
-          type="button"
-          className="map-layer-menu-btn"
-          title="Layers"
-          onClick={() => setLayerMenuOpen((p) => !p)}
-        >
-          <Menu size={18} />
-        </button>
-
         {/* Search button */}
         <button
           type="button"
@@ -728,23 +756,26 @@ export default function SearchBar({
         />
 
         {/* Paste & Search (one click: paste from clipboard + immediate search) */}
-        <button
-          type="button"
-          className="map-paste-btn"
-          title="Paste and Search"
-          onClick={handlePasteAndSearch}
-        >
-          <Clipboard size={16} />
-        </button>
+        {!query && (
+          <button
+            type="button"
+            className="map-paste-btn"
+            title="Paste and Search"
+            onClick={handlePasteAndSearch}
+          >
+            <Clipboard size={16} />
+          </button>
+        )}
 
         {/* Clear button */}
-        {query && (
+        {(query || nearbyActive) && (
           <button
             type="button"
             className="map-search-clear"
             onClick={handleClear}
+            title="Clear search and close nearby"
           >
-            <X size={16} />
+            <X size={22} strokeWidth={3} />
           </button>
         )}
       </form>
@@ -862,61 +893,6 @@ export default function SearchBar({
           Medical Shops
         </button>
       </div>
-
-      {layerMenuOpen && (
-        <div className="map-layer-menu-dropdown">
-          <button
-            type="button"
-            className={`map-layer-menu-item ${layerMenuValue === "vector" ? "active" : ""}`}
-            onClick={() => {
-              onLayerMenuChange?.("vector");
-              setLayerMenuOpen(false);
-            }}
-          >
-            Vector Layers
-          </button>
-          <button
-            type="button"
-            className={`map-layer-menu-item ${layerMenuValue === "raster" ? "active" : ""}`}
-            onClick={() => {
-              onLayerMenuChange?.("raster");
-              setLayerMenuOpen(false);
-            }}
-          >
-            Raster Layers
-          </button>
-          <button
-            type="button"
-            className={`map-layer-menu-item ${layerMenuValue === "disease-layer" ? "active" : ""}`}
-            onClick={() => {
-              onLayerMenuChange?.("disease-layer");
-              setLayerMenuOpen(false);
-            }}
-          >
-            Disease Layer
-          </button>
-          <button
-            type="button"
-            className={`map-layer-menu-item ${layerMenuValue === "disease-heatmap" ? "active" : ""}`}
-            onClick={() => {
-              onLayerMenuChange?.("disease-heatmap");
-              setLayerMenuOpen(false);
-            }}
-          >
-            Disease Heatmap
-          </button>
-          <button
-            type="button"
-            className={`map-layer-menu-item ${layerMenuValue === "disease-trends" ? "active" : ""}`}
-            onClick={() => {
-              onLayerMenuChange?.("disease-trends");
-              setLayerMenuOpen(false);
-            }}
-          >
-            Disease Trends
-          </button>
-        </div>
-      )}
 
       {/* Directions Panel */}
       {hasRoute && steps.length > 0 && (

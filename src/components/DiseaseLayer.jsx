@@ -115,9 +115,10 @@ function DiseaseLayer({
   hideToggle = false,
   externallyOpen,
   containerStyle,
+  onRequestClose,
 }) {
   const map = useMap();
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(false);
   const [visibleLocal, setVisibleLocal] = useState(false);
   const layerRef = useRef(null);
   const toggleRef = useRef(null);
@@ -125,6 +126,13 @@ function DiseaseLayer({
   const wardSummary = useMemo(() => summarizeByWard(diseaseRows), [diseaseRows]);
   const visible =
     typeof externallyOpen === "boolean" ? externallyOpen : visibleLocal;
+  const closePanel = () => {
+    if (onRequestClose) {
+      onRequestClose();
+      return;
+    }
+    setVisibleLocal(false);
+  };
 
   useEffect(() => {
     if (toggleRef.current) {
@@ -290,6 +298,17 @@ function DiseaseLayer({
 
       {visible && (
         <div className="layer-panel-form raster-panel">
+          <div className="layer-panel-header">
+            <div className="layer-panel-title">Disease Layer</div>
+            <button
+              type="button"
+              className="layer-panel-close-btn"
+              title="Close"
+              onClick={closePanel}
+            >
+              ×
+            </button>
+          </div>
           <label className="custom-option">
             <input
               type="checkbox"

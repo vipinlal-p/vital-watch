@@ -6,6 +6,10 @@ body {
   font-family: Arial, sans-serif;
 }
 
+:root {
+  --navbar-offset: 0px;
+}
+
 @layer utilities {
   .bg-gradient-red-black {
     background: linear-gradient(90deg, #7F1D1D, #000000);
