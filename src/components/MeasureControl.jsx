@@ -39,6 +39,29 @@ export default function MeasureControl() {
     // helpers
     const fmtDist = (m) => (m < 1000 ? `${m.toFixed(1)} m` : `${(m / 1000).toFixed(3).replace(/\.?0+$/, "")} km`);
     const fmtArea = (m2) => (m2 < 1000000 ? `${m2.toFixed(0)} m²` : `${(m2 / 1000000).toFixed(2)} km²`);
+    const safeDisablePmModes = () => {
+        if (!map?.pm) return;
+        try {
+            if (map.pm.globalDrawModeEnabled?.()) {
+                map.pm.disableDraw();
+            }
+        } catch (e) { }
+        try {
+            if (map.pm.globalEditModeEnabled?.()) {
+                map.pm.disableGlobalEditMode();
+            }
+        } catch (e) { }
+        try {
+            if (map.pm.globalRemovalModeEnabled?.()) {
+                map.pm.disableGlobalRemovalMode();
+            }
+        } catch (e) { }
+        try {
+            if (map.pm.globalDragModeEnabled?.()) {
+                map.pm.disableGlobalDragMode();
+            }
+        } catch (e) { }
+    };
 
     // Geodesic area (fallback implementation)
     const geodesicArea = (latlngs) => {
@@ -62,10 +85,7 @@ export default function MeasureControl() {
             if (!measureGroupRef.current) measureGroupRef.current = L.layerGroup().addTo(map);
             map.pm.setGlobalOptions({ tooltips: false, measurement: false });
         } else {
-            map.pm.disableDraw();
-            map.pm.disableGlobalEditMode();
-            map.pm.disableGlobalRemovalMode();
-            map.pm.disableGlobalDragMode();
+            safeDisablePmModes();
             setActiveTool(null);
             setDrawing(false);
         }
@@ -375,10 +395,7 @@ export default function MeasureControl() {
         activeToolRef.current = tool;
 
         // Always disable everything first
-        map.pm.disableDraw();
-        map.pm.disableGlobalEditMode();
-        map.pm.disableGlobalRemovalMode();
-        map.pm.disableGlobalDragMode();
+        safeDisablePmModes();
 
         const opts = { snappable: true };
 
@@ -473,8 +490,18 @@ export default function MeasureControl() {
                     onClick={() => setEnabled((p) => !p)}
                 >
 
-<svg fill="#000000" height="20px" width="20px" version="1.2" baseProfile="tiny" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-	  viewBox="-871 1129 256 256" xml:space="preserve">
+<svg
+  fill="#000000"
+  height="20px"
+  width="20px"
+  version="1.2"
+  baseProfile="tiny"
+  id="Layer_1"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlnsXlink="http://www.w3.org/1999/xlink"
+  viewBox="-871 1129 256 256"
+  xmlSpace="preserve"
+>
 <path d="M-871,1185.5l199.2,199.7l56.8-56.7l-199.2-199.7L-871,1185.5z M-627,1328.5l-36.3,36.3l-187.3-187.7l36.4-36.2l25.4,25.4
 	l-11.2,11.2l6,6l11.2-11.2l12,12l-17.2,17.2l6,6l17.2-17.2l12,12l-11.2,11.2l6,6l11.2-11.2l12,12l-17.2,17.2l6,6l17.2-17.2l12,12
 	l-11.2,11.2l6,6l11.2-11.2l12,12l-17.2,17.2l6,6l17.2-17.2l12,12l-11.2,11.2l6,6l11.2-11.2l12,12l-17.2,17.2l6,6l17.2-17.2l12,12
