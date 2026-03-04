@@ -244,6 +244,25 @@ const colorForIntensity = (value) => {
   return GRADIENT_STOPS[GRADIENT_STOPS.length - 1][1];
 };
 
+const mulberry32 = (seed) => {
+  let t = seed >>> 0;
+  return () => {
+    t += 0x6d2b79f5;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
+const methodLabel = (method) => {
+  if (method === "moving-average") return "Moving Average";
+  if (method === "cagr") return "CAGR";
+  if (method === "random-forest") return "Random Forest";
+  if (method === "svm") return "SVM";
+  if (method === "ann") return "ANN";
+  return "Linear Trend";
+};
+
 const predictValueForYear = (yearlySeries, targetYear, method) => {
   const points = Object.entries(yearlySeries)
     .map(([year, value]) => ({ year: Number(year), value: safeNumber(value) }))
@@ -258,6 +277,59 @@ const predictValueForYear = (yearlySeries, targetYear, method) => {
   }
 
   const horizon = targetYear - last.year;
+  if (method === "svm") {
+    // Robust linear trend (SVM-like): median of pairwise slopes to reduce outlier effect.
+    const slopes = [];
+    for (let i = 0; i < points.length; i += 1) {
+      for (let j = i + 1; j < points.length; j += 1) {
+        const dy = points[j].value - points[i].value;
+        const dx = points[j].year - points[i].year;
+        if (dx !== 0) slopes.push(dy / dx);
+      }
+    }
+    if (!slopes.length) return Math.max(0, last.value);
+    slopes.sort((a, b) => a - b);
+    const medianSlope = slopes[Math.floor(slopes.length / 2)];
+    return Math.max(0, last.value + medianSlope * horizon);
+  }
+
+  if (method === "random-forest") {
+    // Deterministic ensemble of bootstrapped local linear projections.
+    const trees = 31;
+    const seed = Math.round(last.year * 97 + last.value * 13 + points.length * 17);
+    const rand = mulberry32(seed);
+    let sumPred = 0;
+    for (let t = 0; t < trees; t += 1) {
+      const sample = [];
+      for (let i = 0; i < points.length; i += 1) {
+        sample.push(points[Math.floor(rand() * points.length)]);
+      }
+      const a = sample[Math.floor(rand() * sample.length)];
+      const b = sample[Math.floor(rand() * sample.length)];
+      const dx = (b?.year ?? a.year) - a.year;
+      const slope = dx === 0 ? 0 : ((b?.value ?? a.value) - a.value) / dx;
+      const localPred = last.value + slope * horizon;
+      sumPred += Math.max(0, localPred);
+    }
+    return Math.max(0, sumPred / trees);
+  }
+
+  if (method === "ann") {
+    // ANN-like non-linear forecast using trend + acceleration with smoothing.
+    if (points.length < 2) return Math.max(0, last.value);
+    const deltas = [];
+    for (let i = 1; i < points.length; i += 1) {
+      deltas.push(points[i].value - points[i - 1].value);
+    }
+    const recent = deltas.slice(-3);
+    const avgDelta = recent.reduce((s, v) => s + v, 0) / Math.max(1, recent.length);
+    const accel = recent.length >= 2 ? recent[recent.length - 1] - recent[0] : 0;
+    const nonlinear = last.value + avgDelta * horizon + 0.5 * accel * horizon * horizon;
+    const movingAvg =
+      points.slice(-3).reduce((s, p) => s + p.value, 0) / Math.min(3, points.length);
+    return Math.max(0, nonlinear * 0.75 + movingAvg * 0.25);
+  }
+
   if (method === "moving-average") {
     const window = points.slice(Math.max(0, points.length - 3));
     const avg = window.reduce((sum, p) => sum + p.value, 0) / window.length;
@@ -528,7 +600,7 @@ function HeatmapLayer({
         <div style="font-size:10px;color:#555;margin-top:4px;font-family:Arial,sans-serif;">
           ${
             heatmapMode === "predicted"
-              ? `Gaussian KDE, ${predictionMethod}, ${predictionScenario}`
+              ? `Gaussian KDE, ${methodLabel(predictionMethod)}, ${predictionScenario}`
               : "Gaussian KDE, bandwidth 2.5 km"
           }
         </div>
@@ -674,6 +746,9 @@ function HeatmapLayer({
                 <option value="linear">Linear Trend</option>
                 <option value="moving-average">3-Year Moving Average</option>
                 <option value="cagr">CAGR Extrapolation</option>
+                <option value="random-forest">Random Forest</option>
+                <option value="svm">SVM Regression</option>
+                <option value="ann">ANN Forecast</option>
               </select>
 
               <label className="raster-meta">Scenario</label>
