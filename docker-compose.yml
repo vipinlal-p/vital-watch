@@ -55,9 +55,6 @@ services:
       VITE_GEOSERVER_BASE_URL: http://localhost:8080
       VITE_GEOSERVER_WMS_URL: http://localhost:8080/geoserver/wms
       VITE_GEOSERVER_WORKSPACE: raster
-      VITE_GEOSERVER_DEM_LAYER: raster:dem
-      VITE_GEOSERVER_ASPECT_LAYER: raster:aspect
-      VITE_GEOSERVER_POPULATION_LAYER: raster:population_density
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "100"
       VITE_DOCKER_DEV: "true"
