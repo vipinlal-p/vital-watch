@@ -1,0 +1,25 @@
+{
+"type": "FeatureCollection",
+"name": "hotspot",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32643" } },
+"features": [
+{ "type": "Feature", "properties": { "Name": "Karakulam", "Phone": "0471-2372046", "Mobile": "9496040688", "Email": "karakulamgp46@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 719050.030878132442012, 947571.549050291185267, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Manickal", "Phone": "0472-2582046", "Mobile": "9496040700", "Email": "manickalgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 713464.902653130935505, 956572.113228489411995, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Kadinamkulam", "Phone": "0471-2750249", "Mobile": "9496040670", "Email": "kadinamkulamgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 700060.405630697961897, 951423.548520133132115, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Mangalapuram", "Phone": "0471-2420261", "Mobile": "9496040666", "Email": "secmangalapuram@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 703420.269216177752241, 953801.041896200738847, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Kilimanoor", "Phone": "0470-2672222", "Mobile": "9496040722", "Email": "secretarykmr@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 706894.754329494549893, 969958.013382846605964, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Mudakkal", "Phone": "0470-2639035", "Mobile": "9496040742", "Email": "mudakkalgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 705336.899228876223788, 962200.973228671355173, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Perumkadavila", "Phone": "0471-2275258", "Mobile": "9496040630", "Email": "nregapkvila@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 732121.627681150217541, 933522.385953701334074, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Kattakada", "Phone": "0471-2290337", "Mobile": "9496040672", "Email": "ktkdagp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 729548.375278790364973, 940551.902586134732701, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Vellanadu", "Phone": "0472-2882034", "Mobile": "9496040674", "Email": "vellanadgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 726659.934605942806229, 947276.396564358845353, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Navaikulam", "Phone": "0470-2692022", "Mobile": "9496040724", "Email": "nvkmgpt@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 696538.632765357382596, 971203.127835170598701, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Kollayil", "Phone": "0471-2232383", "Mobile": "9496040628", "Email": "kollayilgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 735383.662817524396814, 929511.6649459162727, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Kalliyoor", "Phone": "0471-2400258", "Mobile": "9496040662", "Email": "secretaryklyrgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 722039.586646752664819, 932688.022073906380683, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Pothencode", "Phone": "0471-2419238", "Mobile": "9496040664", "Email": "pothencodugp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 708947.106436942587607, 953300.846877614501864, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Aanadu", "Phone": "0472-2802375", "Mobile": "9496040694", "Email": "anadgp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 721309.005597819574177, 954917.106330980896018, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Vamanapuram", "Phone": "0472-2835034", "Mobile": "9496040698", "Email": "secretaryvamanapuram@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 708811.890560164581984, 964425.594802351901308, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Vellarada", "Phone": "0471-2242042", "Mobile": "9496040624", "Email": "vellaradagp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 741753.080520362593234, 934692.083470212761313, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Cherynniyoor", "Phone": "0470-2602365", "Mobile": "9496040746", "Email": "cherugp@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 692944.739764822763391, 964979.177883767290041, 0.0 ] } },
+{ "type": "Feature", "properties": { "Name": "Kunnathukal", "Phone": "0471-2250235", "Mobile": "9496040626", "Email": "nregakkl@gmail.com", "Hotspot": 1 }, "geometry": { "type": "Point", "coordinates": [ 738053.067011025850661, 928073.791939853108488, 0.0 ] } }
+]
+}
