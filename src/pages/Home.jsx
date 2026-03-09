@@ -20,6 +20,14 @@ import TrendsLayer from "../components/TrendsLayer";
 import RasterLayers from "../components/RasterLayers";
 import FloatingAuthControl from "../components/FloatingAuthControl";
 
+const RASTER_NORMALIZED_CLASSES = [
+  { id: "very-low", label: "Very Low (0-20%)", color: "#15803d" },
+  { id: "low", label: "Low (20-40%)", color: "#65a30d" },
+  { id: "moderate", label: "Moderate (40-60%)", color: "#facc15" },
+  { id: "high", label: "High (60-80%)", color: "#f97316" },
+  { id: "very-high", label: "Very High (80-100%)", color: "#dc2626" },
+];
+
 const MainMap = React.memo(
   ({ setBounds, activeBase, setActiveBase }) => {
     const map = useMap();
@@ -165,15 +173,22 @@ function Home() {
           {rasterLegendItems.length > 0 && (
             <div className="map-shared-legend-section">
               <div className="map-shared-legend-title">Raster Layers</div>
-              {rasterLegendItems.map((item) => (
+              {RASTER_NORMALIZED_CLASSES.map((item) => (
                 <div className="map-shared-legend-item" key={`r-${item.id}`}>
-                  <img
-                    className="map-shared-legend-image"
-                    src={item.imageUrl}
-                    alt={`${item.name} legend`}
+                  <span
+                    className="map-shared-legend-swatch"
+                    style={{ backgroundColor: item.color }}
                   />
+                  <span className="map-shared-legend-name">{item.label}</span>
+                </div>
+              ))}
+              <div className="map-shared-legend-note">
+                Five-class raster style from GeoServer (`raster_5class`).
+              </div>
+              {rasterLegendItems.map((item) => (
+                <div className="map-shared-legend-item" key={`rl-${item.id}`}>
                   <span className="map-shared-legend-name">
-                    {formatLegendName(item.name)}
+                    Layer: {formatLegendName(item.name)}
                   </span>
                 </div>
               ))}

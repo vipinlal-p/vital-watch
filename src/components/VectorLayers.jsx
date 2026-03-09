@@ -78,6 +78,11 @@ const toTitle = (id) =>
     .replaceAll("-", " ")
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
 
+const isHotspotLayerName = (value) => {
+  const normalized = String(value || "").toLowerCase();
+  return normalized.includes("hotspot") || normalized.includes("hot spot");
+};
+
 const normalizeFeatureCollection = (obj) => {
   if (!obj) return null;
   if (obj.type === "FeatureCollection") return obj;
@@ -332,6 +337,7 @@ function VectorLayers({
             data: reprojection.data,
             color: VECTOR_COLORS[idx % VECTOR_COLORS.length],
             isHospital: id.toLowerCase().includes("hospital"),
+            isHotspot: isHotspotLayerName(id),
           };
         })
         .filter(Boolean)
@@ -444,6 +450,7 @@ function VectorLayers({
           name: file.name.replace(/\.(zip|geojson|json)$/i, ""),
           data: normalized,
           visible: true,
+          isHotspot: isHotspotLayerName(file.name),
         },
       ]);
       event.target.value = "";
@@ -473,6 +480,13 @@ function VectorLayers({
       '<div style="width:20px;height:20px;border-radius:50%;background:#dc2626;color:#fff;border:1px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;line-height:1;">H</div>',
     iconSize: [20, 20],
     iconAnchor: [10, 10],
+  });
+  const hotspotTriangleIcon = L.divIcon({
+    className: "",
+    html:
+      '<div style="position:relative;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:16px solid #111;"><div style="position:absolute;left:-7px;top:3px;width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid #d32f2f;"></div></div>',
+    iconSize: [18, 16],
+    iconAnchor: [9, 16],
   });
 
   useEffect(() => {
@@ -625,6 +639,8 @@ function VectorLayers({
             pointToLayer={(feature, latlng) =>
               option.isHospital
                 ? L.marker(latlng, { icon: hospitalHIcon })
+                : option.isHotspot
+                  ? L.marker(latlng, { icon: hotspotTriangleIcon })
                 : L.circleMarker(latlng, {
                     radius: 6,
                     fillColor: option.color,
@@ -647,7 +663,15 @@ function VectorLayers({
               data={layer.data}
               style={{ color: "#ff7800", weight: 2, fillOpacity: 0.2 }}
               pointToLayer={(feature, latlng) =>
-                L.circleMarker(latlng, { radius: 6, fillColor: "#ff7800", color: "#fff", weight: 1, fillOpacity: 0.9 })
+                layer.isHotspot
+                  ? L.marker(latlng, { icon: hotspotTriangleIcon })
+                  : L.circleMarker(latlng, {
+                      radius: 6,
+                      fillColor: "#ff7800",
+                      color: "#fff",
+                      weight: 1,
+                      fillOpacity: 0.9,
+                    })
               }
               onEachFeature={handleFeatureHover}
             />

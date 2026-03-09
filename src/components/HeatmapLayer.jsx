@@ -142,11 +142,40 @@ const getBoundaryNameForPoint = (lon, lat, featureCollection, overlayType) => {
   return "Unknown";
 };
 
-const buildKdeGridCells = (weightedPoints, bandwidthKm = 2.5, gridSize = 70) => {
+const getFeatureCollectionBBox = (featureCollection) => {
+  const features = featureCollection?.features || [];
+  let minLon = Infinity;
+  let minLat = Infinity;
+  let maxLon = -Infinity;
+  let maxLat = -Infinity;
+
+  const visitCoords = (coords) => {
+    if (!Array.isArray(coords) || coords.length === 0) return;
+    if (typeof coords[0] === "number" && typeof coords[1] === "number") {
+      const lon = coords[0];
+      const lat = coords[1];
+      if (Number.isFinite(lon) && Number.isFinite(lat)) {
+        minLon = Math.min(minLon, lon);
+        minLat = Math.min(minLat, lat);
+        maxLon = Math.max(maxLon, lon);
+        maxLat = Math.max(maxLat, lat);
+      }
+      return;
+    }
+    coords.forEach(visitCoords);
+  };
+
+  features.forEach((feature) => visitCoords(feature?.geometry?.coordinates));
+
+  if (!Number.isFinite(minLon) || !Number.isFinite(minLat)) return null;
+  return { minLon, minLat, maxLon, maxLat };
+};
+
+const buildKdeGridCells = (weightedPoints, bandwidthKm = 2.5, gridSize = 70, bbox = null) => {
   if (!weightedPoints.length) return [];
 
-  const lats = weightedPoints.map((p) => p.lat);
-  const lons = weightedPoints.map((p) => p.lon);
+  const lats = bbox ? [bbox.minLat, bbox.maxLat] : weightedPoints.map((p) => p.lat);
+  const lons = bbox ? [bbox.minLon, bbox.maxLon] : weightedPoints.map((p) => p.lon);
   const minLat = Math.min(...lats);
   const maxLat = Math.max(...lats);
   const minLon = Math.min(...lons);
@@ -197,17 +226,16 @@ const buildKdeGridCells = (weightedPoints, bandwidthKm = 2.5, gridSize = 70) => 
       lon: cell.lon,
       density: cell.density,
       intensity: cell.density / maxDensity,
-    }))
-    .filter((cell) => cell.intensity >= 0.02);
+    }));
 };
 
 const safeNumber = (value) => (Number.isFinite(value) ? value : 0);
 const GRADIENT_STOPS = [
-  [0, "#4575b4"],
-  [0.3, "#91bfdb"],
-  [0.5, "#ffffbf"],
-  [0.7, "#fdae61"],
-  [1, "#d73027"],
+  [0, "#1d4ed8"],
+  [0.3, "#0ea5e9"],
+  [0.5, "#facc15"],
+  [0.7, "#fb923c"],
+  [1, "#dc2626"],
 ];
 
 const hexToRgb = (hex) => {
@@ -503,7 +531,8 @@ function HeatmapLayer({
       })
       .filter((p) => p && p.weight > 0);
 
-    const gridCells = buildKdeGridCells(weightedPoints, 2.5, 70);
+    const tvmBbox = getFeatureCollectionBBox(tvmBoundaryGeoJson);
+    const gridCells = buildKdeGridCells(weightedPoints, 3.2, 70, tvmBbox);
     if (gridCells.length === 0) return;
     const clippedGridCells = gridCells.filter((cell) =>
       pointInBoundary(cell.lon, cell.lat, tvmBoundaryGeoJson)
@@ -511,11 +540,11 @@ function HeatmapLayer({
     if (clippedGridCells.length === 0) return;
 
     const gradient = {
-      0.1: "#4575b4",
-      0.3: "#91bfdb",
-      0.5: "#ffffbf",
-      0.7: "#fdae61",
-      1.0: "#d73027",
+      0.1: "#1d4ed8",
+      0.3: "#0ea5e9",
+      0.5: "#facc15",
+      0.7: "#fb923c",
+      1.0: "#dc2626",
     };
 
     const cellRenderer = L.canvas({ padding: 0.5 });
@@ -530,14 +559,15 @@ function HeatmapLayer({
             : null;
 
     clippedGridCells.forEach((cell) => {
+      const softenedIntensity = Math.pow(cell.intensity, 1.35);
       const polygonName = overlayData
         ? getBoundaryNameForPoint(cell.lon, cell.lat, overlayData, boundaryOverlay)
         : null;
       const rect = L.rectangle(cell.bounds, {
         stroke: false,
         fill: true,
-        fillColor: colorForIntensity(cell.intensity),
-        fillOpacity: Math.max(0.18, Math.min(0.9, cell.intensity * 0.9)),
+        fillColor: colorForIntensity(Math.min(0.9, softenedIntensity)),
+        fillOpacity: Math.max(0.74, Math.min(1, 0.74 + softenedIntensity * 0.24)),
         interactive: true,
         renderer: cellRenderer,
       });
@@ -601,7 +631,7 @@ function HeatmapLayer({
           ${
             heatmapMode === "predicted"
               ? `Gaussian KDE, ${methodLabel(predictionMethod)}, ${predictionScenario}`
-              : "Gaussian KDE, bandwidth 2.5 km"
+              : "Gaussian KDE, bandwidth 3.2 km"
           }
         </div>
         <div style="font-size:10px;color:#555;margin-top:2px;font-family:Arial,sans-serif;">
