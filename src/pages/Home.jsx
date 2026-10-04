@@ -71,7 +71,7 @@ function Home() {
   const [rasterLegendItems, setRasterLegendItems] = useState([]);
   const [vectorLegendItems, setVectorLegendItems] = useState([]);
 
-  const [activeBase, setActiveBase] = useState("osm");
+  const [activeBase, setActiveBase] = useState("satellite");
 
   const sharedLayerPanelStyle = {
     top: "calc(112px + var(--navbar-offset))",
@@ -90,7 +90,7 @@ function Home() {
     >
       <MapContainer
         center={position}
-        zoom={10}
+        zoom={11}
         style={{ height: "100%", width: "100%" }}
         zoomControl={false}
         doubleClickZoom={false}

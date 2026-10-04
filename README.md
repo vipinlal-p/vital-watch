@@ -16,6 +16,19 @@
 
 ---
 
+## 🎓 Academic Project
+
+This project has been developed as the **Dissertation/Project Work** for the **M.Sc. Geoinformatics (MSCGI) Programme, Project MGYP-031**, under **Indira Gandhi National Open University (IGNOU)**.
+
+### Student Details
+
+- **Name:** Vipinlal P
+- **Enrolment Number:** 2450132320
+- **Regional Centre:** RC Trivandrum (40)
+- **Study Centre:** Institute of Land and Disaster Management
+
+---
+
 ## ✨ Features
 
 -   **Interactive Map:** A fast, responsive map interface powered by Leaflet.
@@ -44,36 +57,41 @@
 
 ## 🛠️ Tech Stack
 
-| Category      | Technology                                         |
-| :------------ | :------------------------------------------------- |
-| **Frontend**  | [React](https://react.dev/), [Vite](https://vitejs.dev/), [Leaflet](https://leafletjs.com/), [Tailwind CSS](https://tailwindcss.com/) |
-| **Backend**   | [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)                   |
-| **Database**  | [PostgreSQL](https://www.postgresql.org/) + [PostGIS](https://postgis.net/) extension            |
-| **Geo-Server**| [GeoServer](https://geoserver.org/) (via Docker)                     |
-| **Container** | [Docker](https://www.docker.com/)                                  |
+| Category | Technology |
+| :--- | :--- |
+| **Frontend** | [React](https://react.dev/), [Vite](https://vitejs.dev/), [Leaflet](https://leafletjs.com/), [Tailwind CSS](https://tailwindcss.com/) |
+| **Backend** | [Node.js](https://nodejs.org/), [Express](https://expressjs.com/) |
+| **Database** | [PostgreSQL](https://www.postgresql.org/) + [PostGIS](https://postgis.net/) extension |
+| **GeoServer** | [GeoServer](https://geoserver.org/) (via Docker) |
+| **Container** | [Docker](https://www.docker.com/) |
 
 ## 🚀 Getting Started
 
 This project is designed to be run with Docker. Ensure you have Docker and Docker Compose installed on your system.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/vipinlal-p/vital-watch.git
-    cd vital-watch
-    ```
+1. **Clone the repository:**
 
-2.  **Build and run the services:**
-    From the project root, run the following command:
-    ```bash
-    docker compose up --build
-    ```
-    > **Note:** If you are using an older version of Docker Compose, you may need to use the hyphenated command: `docker-compose up --build`.
+   ```bash
+   git clone https://github.com/vipinlal-p/vital-watch.git
+   cd vital-watch
+   ```
 
-3.  **Access the services:**
-    *   **Frontend Application:** [http://localhost:5173](http://localhost:5173)
-    *   **Backend API:** `http://localhost:5000`
-    *   **GeoServer:** [http://localhost:8080/geoserver](http://localhost:8080/geoserver)
-    *   **Database (PostGIS):** Connect on port `5432`
+2. **Build and run the services:**
+
+   From the project root, run the following command:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   > **Note:** If you are using an older version of Docker Compose, you may need to use the hyphenated command: `docker-compose up --build`.
+
+3. **Access the services:**
+
+   - **Frontend Application:** [http://localhost:5173](http://localhost:5173)
+   - **Backend API:** `http://localhost:5000`
+   - **GeoServer:** [http://localhost:8080/geoserver](http://localhost:8080/geoserver)
+   - **Database (PostGIS):** Connect on port `5432`
 
 ### 🔐 Default Admin Account
 
@@ -103,14 +121,17 @@ Use this account to sign in and create additional users from the Admin Panel (`/
 
 ### Useful Docker Commands
 
--   **Run in detached mode:**
-    ```bash
-    docker compose up --build -d
-    ```
--   **Stop all services:**
-    ```bash
-    docker compose down
-    ```
+- **Run in detached mode:**
+
+  ```bash
+  docker compose up --build -d
+  ```
+
+- **Stop all services:**
+
+  ```bash
+  docker compose down
+  ```
 
 ## ⚙️ Configuration
 
@@ -122,26 +143,29 @@ cp .env.example .env
 
 The following table describes the key environment variables for the frontend:
 
-| Variable                         | Description                                            | Default                            |
-| :------------------------------- | :----------------------------------------------------- | :--------------------------------- |
-| `VITE_API_BASE_URL`              | URL for the backend Express API.                       | `http://localhost:5000`            |
-| `VITE_GEOSERVER_BASE_URL`        | Base URL for the GeoServer instance.                   | `http://localhost:8080`            |
-| `VITE_GEOSERVER_WMS_URL`         | The WMS endpoint for fetching raster tiles.            | `http://localhost:8080/geoserver/wms`|
-| `VITE_GEOSERVER_WORKSPACE`       | The GeoServer workspace where raster layers are stored.| `raster`                           |
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `VITE_API_BASE_URL` | URL for the backend Express API. | `http://localhost:5000` |
+| `VITE_GEOSERVER_BASE_URL` | Base URL for the GeoServer instance. | `http://localhost:8080` |
+| `VITE_GEOSERVER_WMS_URL` | The WMS endpoint for fetching raster tiles. | `http://localhost:8080/geoserver/wms` |
+| `VITE_GEOSERVER_WORKSPACE` | The GeoServer workspace where raster layers are stored. | `raster` |
 
 ## 🤔 Common Issues
 
 ### Port 8080 is already in use
+
 This error means another process (often a local Tomcat or another GeoServer instance) is using port 8080.
 
 **Solution:** Stop the other process, or remap the port in `docker-compose.yml`. For example, change `8080:8080` to `8081:8080` and update the `VITE_GEOSERVER_...` URLs in your `.env` file.
 
 ### `Could not load layer catalog`
+
 This usually indicates a problem with the GeoServer connection. Check the following:
--   Is the `geoserver` container running? (`docker ps`)
--   Is the `VITE_GEOSERVER_WMS_URL` correct?
--   Does the workspace specified in `VITE_GEOSERVER_WORKSPACE` exist on GeoServer?
--   Have you published any layers within that workspace?
+
+- Is the `geoserver` container running? (`docker ps`)
+- Is the `VITE_GEOSERVER_WMS_URL` correct?
+- Does the workspace specified in `VITE_GEOSERVER_WORKSPACE` exist on GeoServer?
+- Have you published any layers within that workspace?
 
 ## 📝 Project Notes
 

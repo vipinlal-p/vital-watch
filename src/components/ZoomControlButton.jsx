@@ -6,7 +6,7 @@ import L from "leaflet";
 
 function ZoomControlButton({
   defaultCenter = [8.5241, 76.9366],
-  defaultZoom = 10,
+  defaultZoom = 11,
 }) {
   const map = useMap();
   const zoomGroupRef = useRef(null);

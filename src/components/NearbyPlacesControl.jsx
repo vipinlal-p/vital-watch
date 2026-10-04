@@ -180,7 +180,7 @@ export default function NearbyPlacesControl({
     if (!base || !CATEGORY_META[category]) return;
 
     const [lat, lon] = base;
-    const radius = 2500;
+    const radius = 1500;
     const meta = CATEGORY_META[category];
 
     setIsLoading(true);

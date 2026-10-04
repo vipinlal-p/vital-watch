@@ -9,7 +9,6 @@ const WMS_URL = GEOSERVER_WMS_URL;
 const GEOSERVER_WORKSPACE =
   (import.meta.env.VITE_GEOSERVER_WORKSPACE || "raster").trim();
 
-const DEFAULT_LAYER_NAMES = [];
 
 const normalizeEpsg = (crsText) => {
   if (!crsText || typeof crsText !== "string") return null;
@@ -144,17 +143,22 @@ export default function RasterLayers({
 
         setCatalogLayers(sorted);
 
-        const defaultsFound = DEFAULT_LAYER_NAMES.filter((name) =>
-          sorted.some((layer) => layer.name === name)
-        );
+setActiveLayers((prev) => {
+  const next = { ...prev };
 
-        setActiveLayers((prev) => {
-          const next = { ...prev };
-          defaultsFound.forEach((name) => {
-            if (next[name] === undefined) next[name] = false;
-          });
-          return next;
-        });
+  sorted.forEach((layer) => {
+    const name = (layer.name || "").toLowerCase();
+    const title = (layer.title || "").toLowerCase();
+
+    next[layer.name] =
+      name.endsWith(":disease_risk_map") ||
+      name.endsWith(":disease_risk_map.tif") ||
+      title === "disease_risk_map" ||
+      title === "disease_risk_map.tif";
+  });
+
+  return next;
+});
 
         setCatalogStatus((prev) => ({
           ...prev,

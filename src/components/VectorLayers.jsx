@@ -345,18 +345,25 @@ function VectorLayers({
     [map]
   );
 
-  useEffect(() => {
-    setActiveLayers((prev) => {
-      const next = {};
-      vectorOptions.forEach((option) => {
-        next[option.id] = prev[option.id] ?? false;
-      });
-      const changed =
-        Object.keys(next).length !== Object.keys(prev).length ||
-        Object.entries(next).some(([k, v]) => prev[k] !== v);
-      return changed ? next : prev;
+useEffect(() => {
+  setActiveLayers((prev) => {
+    const next = {};
+
+    vectorOptions.forEach((option) => {
+      const isDefaultActive =
+        option.id.toLowerCase() === "hotspot" ||
+        option.id.toLowerCase() === "trivandrum_panchayat";
+
+      next[option.id] = prev[option.id] ?? isDefaultActive;
     });
-  }, [vectorOptions]);
+
+    const changed =
+      Object.keys(next).length !== Object.keys(prev).length ||
+      Object.entries(next).some(([k, v]) => prev[k] !== v);
+
+    return changed ? next : prev;
+  });
+}, [vectorOptions]);
 
   const toggleLayer = (key) => {
     setActiveLayers((prev) => ({ ...prev, [key]: !prev[key] }));

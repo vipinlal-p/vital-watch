@@ -396,7 +396,7 @@ function HeatmapLayer({
   onRequestClose,
 }) {
   const map = useMap();
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [year, setYear] = useState("All");
   const [diseaseType, setDiseaseType] = useState("All");

@@ -55,7 +55,7 @@ function MapLayersToggle({ activeBase, setActiveBase }) {
   const map = useMap();
   const controlRef = useRef(null);
   const baseLayerRef = useRef(null);
-  const primaryThumbs = ["osm", "satellite", "topo"];
+  const primaryThumbs = [ "satellite","osm", "topo"];
   const extraThumbs = ["roadmap", "dark"];
 
   // ✅ Ensure base layer is always on map
