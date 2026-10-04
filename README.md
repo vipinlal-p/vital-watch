@@ -27,6 +27,12 @@ This project has been developed as the **Dissertation/Project Work** for the **M
 - **Regional Centre:** RC Trivandrum (40)
 - **Study Centre:** Institute of Land and Disaster Management
 
+### Supervisor
+
+**Sri. Amalraj M**  
+*Assistant Professor*  
+*Institute of Land and Disaster Management*
+
 ---
 
 ## ✨ Features
